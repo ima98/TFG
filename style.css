@@ -1,0 +1,40 @@
+#_carga QLineEdit{
+	color:red;
+	background-color: rgb(218, 5, 104);
+}
+
+#_lista QLineEdit{
+	color:rgb(26, 209, 154);
+	background-color: rgb(184, 247, 12);
+}
+
+
+QMainWindow{
+	background-color: rgb(214, 207, 207);
+}
+
+
+QLabel{
+	min-width: 110px;
+}
+
+QLineEdit{
+	min-width: 200px;
+	border: 1px solid #CCC;
+	height: 30px;
+	padding-left: 10px;
+}
+
+QPushButton{
+	background: #5c90b3;
+	color: #ffffff;
+	padding: 10px 20px 10px 20px;
+
+    border-radius: 6px;
+}
+
+QPushButton:hover {
+  background: #3cb0fd;
+}
+
+/*Use the # and the name of the variable to access to a specific the Control*/

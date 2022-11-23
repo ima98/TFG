@@ -1,0 +1,15 @@
+{   "units":["Integer"],
+    "activation":["Combo","relu", "sigmoid", "softmax", "softplus","softsign", "tanh", "selu", "elu", "exponential"],
+    "use_bias":["Boolean"],
+    "kernel_initializer":["Combo","RandomNormal", "RandomUniform", "TruncatedNormal", "Zeros", "Ones", "GlorotNormal", "GlorotUniform", "HeNormal", "HeUniform", "Identity", "Orthogonal", "Constant", "VarianceScaling"],
+    "bias_initializer":["Combo","RandomNormal", "RandomUniform", "TruncatedNormal", "Zeros", "Ones", "GlorotNormal", "GlorotUniform", "HeNormal", "HeUniform", "Identity", "Orthogonal", "Constant", "VarianceScaling"],
+    "kernel_regularizer":["Combo","L1", "L2", "L1L2", "OrthogonalRegularizer"],
+    "bias_regularizer":["Combo","L1", "L2", "L1L2", "OrthogonalRegularizer"],
+    "activity_regularizer":["Combo","L1", "L2", "L1L2", "OrthogonalRegularizer"],
+    "kernel_constraint":["Combo","MaxNorm", "MinMaxNorm", "NonNeg", "UnitNorm", "RadialConstraint"],
+    "bias_constraint":["Combo","MaxNorm", "MinMaxNorm", "NonNeg", "UnitNorm", "RadialConstraint"],
+    
+    
+    "constructor":"tf.keras.layers.Dense()"
+
+}

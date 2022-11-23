@@ -1,0 +1,5 @@
+{
+    "activation":["Combo","relu", "sigmoid", "softmax", "softplus","softsign", "tanh", "selu", "elu", "exponential"],
+
+    "constructor":"tf.keras.layers.Activation()"
+}

@@ -1,0 +1,7 @@
+{
+    "rate":["float", 0,1],
+    "seed":"Integer",
+
+
+    "constructor":"tf.keras.layers.Dropout()"
+}

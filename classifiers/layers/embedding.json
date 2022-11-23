@@ -1,0 +1,11 @@
+{
+    "input_dim":"[Integer]",
+    "output_dim":"[Integer]",
+    "embeddings_initializer":["Combo","RandomNormal", "RandomUniform", "TruncatedNormal", "Zeros", "Ones", "GlorotNormal", "GlorotUniform", "HeNormal", "HeUniform", "Identity", "Orthogonal", "Constant", "VarianceScaling"],
+    "embeddings_regularizer":["Combo","L1", "L2", "L1L2", "OrthogonalRegularizer"],
+    "embeddings_constraint":["Combo","MaxNorm", "MinMaxNorm", "NonNeg", "UnitNorm", "RadialConstraint"],
+    "mask_zero":["Boolean"],
+    "input_length":["Integer"],
+
+    "constructor":"tf.keras.layers.Embedding()"
+}

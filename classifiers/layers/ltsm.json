@@ -1,0 +1,5 @@
+{   "activation":["relu", "sigmoid", "softmax", "softplus","softsign", "tanh", "selu", "elu", "exponential"],
+    "initializer":["RandomNormal", "RandomUniform", "TruncatedNormal", "Zeros", "Ones", "GlorotNormal", "GlorotUniform", "HeNormal", "HeUniform", "Identity", "Orthogonal", "Constant", "VarianceScaling"],
+    "regularizer":["L1", "L2", "L1L2", "OrthogonalRegularizer"],
+    "constraints":["MaxNorm", "MinMaxNorm", "NonNeg", "UnitNorm", "RadialConstraint"]
+}
