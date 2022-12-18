@@ -2,6 +2,8 @@ from imports import *
 import sklearn
 import json
 from modelConfig import *
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import ShuffleSplit
 
 class sklearnBase(BaseWidget):
     def __init__(self, father, X,Y, sklearn):
@@ -32,8 +34,6 @@ class sklearnBase(BaseWidget):
         if self.parent._listaConfig!=[] and self.parent._modelBoolean:
             self.__loadSettings(self.parent._listaConfig[1:])
 
-
-
     
 
     def __updateReverse(self, confString):
@@ -41,7 +41,7 @@ class sklearnBase(BaseWidget):
 
 
     def translate(self, name,tipoJson):
-        print(tipoJson)
+        #print(tipoJson)
         s=name
         if(tipoJson[0]=='Integer'):
             m='self._'+s+'=ControlNumber('+"'"+s+"'"+')'
@@ -81,7 +81,7 @@ class sklearnBase(BaseWidget):
     def __loadSettings(self, lista):
         excepciones=['_parent_widget', '_mainmenu','_splitters','_tabs','_formset', '_formload','_formLoaded','_uid', '_addLayer']
         varAll=vars(self)
-        print(lista)
+        #print(lista)
         for var in varAll:
             if var.startswith("_") and var not in excepciones:
                     a=lista.pop(0)
@@ -98,32 +98,64 @@ class sklearnBase(BaseWidget):
     def __getConfig(self):
         excepciones=['_parent_widget', '_mainmenu','_splitters','_tabs','_formset', '_formload','_formLoaded','_uid', '_addLayer']
         varAll=vars(self)
-        var_=[]
-        lista=[self.name]
+        lista=[]
         for var in varAll:
             if var.startswith("_") and var not in excepciones:
     
-                m='lista.append(self.'+var+'.value)'
+                m='lista.append(("self.'+var+'",self.'+var+'.value))'
                 exec(m)
 
-                var_.append(var)
-            
-
-        self.parent._listaConfig=lista
+        cons=self.data["constructor"]
+        cons=cons[:-1]
         
+
+        for tuplaLista in lista:
+            if(tuplaLista[0]!="self._name"):
+                name=tuplaLista[0][6:]
+                try:
+                    cons=cons+name+"= '"+tuplaLista[1]+"', "
+                except:
+                    cons=cons+name+"= "+str(int(tuplaLista[1]))+", "
+        
+        cons=cons[:-2]
+        cons=cons+")"
+        lista.append(("constructor", cons))
+        print(lista)
+        return lista
+
+
+    def __dicFloatToInt(self, dic):
+        lista=[]
+        for x in dic:
+            try:
+                x[1]=int(x[1])
+                lista.append(x)
+            except:
+                lista.append(x)
+        print(lista)
+        return dict(lista)
 
 
     def __execute(self):
-        self.__getConfig()
+        l=self.__getConfig()
+        dic=dict(l)
 
-        from sklearn.datasets import load_iris
-
-        iris = load_iris()
-        X = iris.data[:, :2]  # we only take the first two features.
-        y = iris.target
         
-        self.parent.X=X
-        self.parent.y=y
+        #from sklearn.datasets import load_iris
+
+        #iris = load_iris()
+        #X = iris.data[:, :2]  # we only take the first two features.
+        #y = iris.target
+        from numpy import loadtxt
+        dataset = loadtxt(self.parent.fileName, delimiter=',')
+
+        
+        
+
+        # split into input (X) and output (y) variables
+        X = dataset[:,0:dataset.shape[1]-1]
+        y = dataset[:,dataset.shape[1]-1]
+        
         #clasi=KNN(4,'uniform',NULL, NULL, NULL, NULL, NULL, NULL)
         #neigh = neighbors.KNeighborsClassifier(n_neighbors=1)
         #X = [[0], [1], [2], [3]]
@@ -138,36 +170,49 @@ class sklearnBase(BaseWidget):
         #https://medium.com/dunder-data/from-pandas-to-scikit-learn-a-new-exciting-workflow-e88e2271ef62
 
         from sklearn.model_selection import train_test_split
-        X_train,X_test,y_train,y_test=train_test_split(self.parent.X,self.parent.y,test_size=0.2,random_state=4)
-        m=self.data["constructor"]
-        
+        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+
+
+          
+        m=dic["constructor"]
         #modelo = neighbors.KNeighborsClassifier(n_neighbors=1)
 
 
         m2='modelo='+m
-        print(m2)
+        #print(m2)
         exec(m2)
-        exec('print("después del primer exec")')
-        #modelo=neighbors.KNeighborsClassifier(n_neighbors=int(self._n_neighbors.value), weights=self._weights.value, algorithm=self._algorithm.value, leaf_size=self._leaf_size.value, p=self._p.value, metric=self._metric.value, n_jobs=int(self._n_jobs.value))
         m3="modelo.fit(X_train,y_train)"
-        exec(m3)
-
-        m4="self.parent._modelConfig=modelo"
-        exec(m4)
-
+        import errorManager
+        try:
+            exec(m3)
+        except Exception as e: 
+            errorManager.error(self, "Error during fit", e)
+            print(e)
         
-        #    "constructor":"DecisionTreeClassifier(criterion=self._criterion.value, splitter=self._splitter.value, max_depth=self._max_depth.value, min_samples_split=self._min_samples_split.value, min_samples_leaf=self._min_samples_leaf.value, min_weight_fraction_leaf=self._min_weight_fraction_leaf.value, max_features=self._max_features.value, random_state=self._random_state.value, max_leaf_nodes=self._max_leaf_nodes.value,min_impurity_decrease=self._min_impurity_decrease.value,class_weight=self._class_weight.value,ccp_alpha=self._ccp_alpha.value)"
+        if(self.parent._ajustesEjecucion.value._cv.value=="Integer"):
+            m4="scores=cross_val_score(modelo, X_train, y_train, cv= int(self.parent._ajustesEjecucion.value._cv_Integer.value))"
+        else:  
+            m4="scores=cross_val_score(modelo, X_train, y_train, cv= int(self.parent._ajustesEjecucion.value._cv_scoring.value))"
 
-        
+        try:
+            exec(m4)
+            print("scores:     ")
+            exec("print(scores)")
+        except Exception as e:
+            errorManager.error(self, "Error during score calculation", e)
+            print(e)
 
-        exec('y_predict=modelo.predict(X_test)')
+        #exec('y_predict=modelo.predict(X_test)')
 
-        exec('result="El resultado de predicción es "+str(y_predict)')
+
+
+        #exec('result="El resultado de predicción es "+str(y_predict)')
         #https://scikit-learn.org/stable/modules/model_evaluation.html            
         #confussion matrix
 
         
-        exec('matrix=confusion_matrix(y_test, y_predict)')
+        #exec('matrix=confusion_matrix(y_test, y_predict)')
         #exec('result=result+"\n"+"y la matriz de confusión" +"\n"+str(matrix)')
         #[[16  0  0]
         #[ 0  4  1]
@@ -192,7 +237,7 @@ class sklearnBase(BaseWidget):
         #0.06666666666666667
 
         #jacc=jaccard_score(y_test,y_predict)
-        exec('self.parent._output.value=result')
+        #exec('self.parent._output.value=result')
     
 
         

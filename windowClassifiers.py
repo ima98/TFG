@@ -2,6 +2,7 @@ from classifiers.KNNsettings import *
 from imports import *
 import numpy as np
 #from help import *
+from numpy import loadtxt
 
 class classifiersWindow(BaseWidget):
     def __init__(self, father):
@@ -113,5 +114,7 @@ class classifiersWindow(BaseWidget):
         clase, extra= pd.factorize(df[original_headers[shape[1]-1]].values)           
         datos.append(dat2)
 
-        self.parent.nextInputSize=shape[1]
+
         self.parent._output.value=[datos,clase]
+
+        self.parent.fileName=self._loadFile.value

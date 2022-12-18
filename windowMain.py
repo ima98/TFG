@@ -30,7 +30,7 @@ class mainWindow(BaseWidget):
         self.X=0
         self.y=0
 
-        self.firstInputSize=0
+        self.fileName=''
         
         #self._loadFile     = ControlFile('Load data')
         #self._loadFile.changed_event=self._loadFile.value
@@ -59,15 +59,14 @@ class mainWindow(BaseWidget):
         self._miniV.value=variable
 
         self._ajustesEjecucion=ControlDockWidget()
-        ajustesVentana=settingsWindow()
-        ajustesVentana.parent=self
-        self._ajustesEjecucion.value=ajustesVentana
+        ajustesVentana=settingsWindow("SKLEARN")
+        #self.listaAjustes=[]
 
 
-        self._ejecucionesAnteriores=ControlDockWidget()
-        historial=historyWindow()
-        historial.parent=self
-        self._ejecucionesAnteriores.value=historial
+        #self._ejecucionesAnteriores=ControlDockWidget()
+        #historial=historyWindow()
+        #historial.parent=self
+        #self._ejecucionesAnteriores.value=historial
 
         self._nameSaveFile=ControlText('Save file name')
         self._save=ControlButton('Save')
@@ -111,15 +110,25 @@ class mainWindow(BaseWidget):
         self._code.show()
 
     def _showClassifierParams(self, X):
-
-        #if X=='KNN':
-        #    prueba=sklearnBase(self, NULL,NULL, 'KNN')
+        
 
         if X=='KERAS':
             prueba=sequentialModel(self,NULL,NULL)
+            ajustesVentana=settingsWindow("KERAS")
+            ajustesVentana.parent=self
+            self._ajustesEjecucion.value=ajustesVentana
+            print("antes")
+            print(self._ajustesEjecucion.value.type)
+            print("despues")
         else:
             prueba=sklearnBase(self, NULL, NULL, X)
-        #   
+            ajustesVentana=settingsWindow("SKLEARN")
+            ajustesVentana.parent=self
+            self._ajustesEjecucion.value=ajustesVentana
+            
+        
+        #self._ajustesEjecucion.value._settingsWindow__update
+
         self._classifierParams.value=prueba
         self._classifierParams.show()
         self._modelBoolean=False 

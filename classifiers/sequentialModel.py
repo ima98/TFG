@@ -10,10 +10,10 @@ import tensorflow as tf
 
 from classifiers.layers.orderLayers import *
 
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QWidget, QPushButton
-from PyQt5.QtCore import Qt, QMimeData, pyqtSignal
-from PyQt5.QtGui import QDrag, QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+
+
+from io import StringIO 
+import sys
 
 
 
@@ -75,7 +75,6 @@ class sequentialModel(BaseWidget):
 
         self.formset=['_layerType','_addLayer', '_layer','_layerCombo','_layerEdit',('_deleteLayer', '_editLayer', '_editLayerOrder'),('_generatePy'),'_execute']
         
-        self.inputSize=self.parent.firstInputSize
 
         if self.parent._listaConfig!=[] and self.parent._modelBoolean:
             self.__loadSettings(self.parent._listaConfig[1:])
@@ -164,14 +163,20 @@ class sequentialModel(BaseWidget):
         fname='generated.py'
         with open(fname, 'w') as f:
             f.write("import tensorflow as tf")
-            
+            f.write('\n')
+            f.write("dataset = loadtxt("+"'"+'diabetes.csv'+"'"+", delimiter=',')")
+        f.close()
 
     def __execute(self):
 
-        dataset = loadtxt('diabetes.csv', delimiter=',')
+        dataset = loadtxt(self.parent.fileName, delimiter=',')
+
+        
+        
+
         # split into input (X) and output (y) variables
-        X = dataset[:,0:8]
-        y = dataset[:,8]
+        X = dataset[:,0:dataset.shape[1]-1]
+        y = dataset[:,dataset.shape[1]-1]
         model = Sequential()
 
         for layerDic in self.layers:
@@ -181,21 +186,53 @@ class sequentialModel(BaseWidget):
             exec("model.add(layerTemp)")
             
 
-
-
         """
         model.add(Dense(8, activation='relu'))
         model.add(Dense(12, input_shape=(8,), activation='relu'))
         
         model.add(Dense(1, activation='sigmoid'))
         """
+        #sys.stdout = buffer = StringIO()
+        
+        try:
+            listaMetrics=self.parent._ajustesEjecucion.value._seq_metrics.items
+            l2=[]
+            for x in listaMetrics:
+                if x[1]==True:
+                    l2.append(x[0])
+            print(l2)
+            model.compile(optimizer='rmsprop', metrics=['Accuracy'])
+            #model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value,
+            #metrics=l2)
+        except:
+            print("There was some error with the fit, using default compile")
+            model.compile(optimizer='rmsprop', metrics=['Accuracy'])
 
-        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-        model.fit(X, y, epochs=20, batch_size=10)
+        print("PRIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIINT")
+        print(self.parent._ajustesEjecucion.value._fit_epochs.value)
+
+        #FIT
+        try:
+            model.fit(X,y, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+            validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
+
+        except:
+            print("There was some error with the fit, using default fit")
+            model.fit(X, y, epochs=20, batch_size=10)
+        
+        #result=buffer.getvalue()
+        result=""
 
         _, accuracy = model.evaluate(X, y)
+        
         print('Accuracy: %.2f' % (accuracy*100))
+        #result=result+"\n And the accuracy: "+buffer.getvalue()
+        model.summary()
+        #result=result+"\n And the summary: "+buffer.getvalue()
+
+        self.parent._output.value=result
+        
 
         """
         dataset = loadtxt('diabetes.csv', delimiter=',')

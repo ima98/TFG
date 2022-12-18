@@ -6,5 +6,5 @@
     "p":["Integer",2],
     "metric":["Combo","minkowski","cityblock", "cosine", "euclidean","haversine", "l1", "l2", "manhattan", "nan_euclidean"],
     "n_jobs":["Integer"],
-    "constructor":"neighbors.KNeighborsClassifier(n_neighbors=int(self._n_neighbors.value), weights=self._weights.value, algorithm=self._algorithm.value, leaf_size=self._leaf_size.value, p=self._p.value, metric=self._metric.value, n_jobs=int(self._n_jobs.value))"
+    "constructor":"neighbors.KNeighborsClassifier()"
 }

@@ -1,6 +1,6 @@
 import pyforms
 from   pyforms.basewidget import BaseWidget
-from   pyforms.controls import ControlMatplotlib,ControlCheckBox, ControlList,ControlTextArea,ControlLabel,ControlCodeEditor,ControlDockWidget,ControlEmptyWidget,ControlNumber,ControlCombo,ControlFile,ControlButton,ControlText
+from   pyforms.controls import ControlCheckBoxList,ControlMatplotlib,ControlCheckBox, ControlList,ControlTextArea,ControlLabel,ControlCodeEditor,ControlDockWidget,ControlEmptyWidget,ControlNumber,ControlCombo,ControlFile,ControlButton,ControlText
 import OpenGL
 import csv
 import plotly.graph_objects as go
@@ -40,6 +40,14 @@ from scipy import rand
 from joblib import dump, load
 
 import numpy as np
+
+
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QWidget, QPushButton, QMessageBox
+from PyQt5.QtCore import Qt, QMimeData, pyqtSignal
+from PyQt5.QtGui import QDrag, QPixmap
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
+
+import errorManager
 
 
 #https://pyforms.readthedocs.io/en/v3.0/api-documentation/basewidget/
