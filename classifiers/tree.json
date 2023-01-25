@@ -1,16 +1,16 @@
 {
     "criterion":["Combo","gini","entropy","log_loss"],
     "splitter":["Combo","best","random"],
-    "max_depth":["Integer"],
-    "min_samples_split":["Float",2],
+    "max_depth":["Integer", 1],
+    "min_samples_split":["Integer",2],
     "min_samples_leaf":["Float",1],
     "min_weight_fraction_leaf":["Float", 0.0],
     "max_features":["Combo","auto", "sqrt", "log2"],
-    "random_state":["Integer", 0],
-    "max_leaf_nodes":["Integer"],
+    "random_state":["Integer"],
+    "max_leaf_nodes":["Integer", 2],
     "min_impurity_decrease":["Float", 0.0],
-    "verbose":["Boolean"],
+
     "class_weight":["Combo","balanced"],
     "ccp_alpha":["Float", 2.0],
-    "constructor":"DecisionTreeClassifier(random_state=0)"
+    "constructor":"sklearn.tree.DecisionTreeClassifier()"
 }

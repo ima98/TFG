@@ -14,5 +14,5 @@
     "decision_function_shape":["Combo", "ovo", "ovr"],
     "break_ties":["Boolean"],
     "random_state":["Integer", 5],
-    "constructor":"neighbors.KNeighborsClassifier(n_neighbors=self._n_neighbors.value, weights=self._weights.value, algorithm=self._algorithm.value, leaf_size=self._leaf_size.value, p=self._p.value, metric=self._metric.value, n_jobs=self._n_jobs.value)"
+    "constructor":"neighbors.KNeighborsClassifier()"
 }

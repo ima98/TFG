@@ -1,0 +1,6 @@
+{
+    "X":["InputX"],
+    "leaf_size":["Integer",40],
+    "metric":["Combo","minkowski","cityblock", "cosine", "euclidean","haversine", "l1", "l2", "manhattan", "nan_euclidean"],
+    "constructor":"sklearn.neighbors.BallTree()"
+}

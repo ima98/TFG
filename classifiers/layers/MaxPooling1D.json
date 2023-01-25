@@ -1,0 +1,7 @@
+{
+    "pool_size":"[Integer]",
+    "strides":"[Integer]",
+    "padding":["Combo","valid", "same"],
+    "data_format":["Combo","channels_last", "channels_first"],
+    "constructor":"tf.keras.layers.MaxPooling1D()"
+}

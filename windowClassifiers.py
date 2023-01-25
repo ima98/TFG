@@ -1,4 +1,3 @@
-from classifiers.KNNsettings import *
 from imports import *
 import numpy as np
 #from help import *
@@ -12,83 +11,110 @@ class classifiersWindow(BaseWidget):
         self.nextInputSize=0
 
         self.formset = [
-            ('_loadFile','_loadModel'),
+            '_loadFile',('_loadModelString','_loadModelStringAction'),
            '_listaClasi',
             '=','_ajustes'
             ]
         self._loadFile=ControlFile('Data file')
         self._loadFile.changed_event=self.__loadFile
 
-        self._loadModel=ControlFile('Model file')
-        self._loadModel.changed_event=self.__loadModel
+
+
+        #self._loadModel=ControlFile('Model file')
+        #self._loadModel.changed_event=self.__loadModel
+        #self._loadModel.hide()
+
+        self._loadModelString=ControlText('Model string')
+        self._loadModelString.hide()
+
+        self._loadModelStringAction=ControlButton('Load String')
+        self._loadModelStringAction.value=self.__loadStringModel
+        self._loadModelStringAction.hide()
 
         self._titulo=ControlLabel('Clasificadores')
         self._print=ControlLabel('printeos')
 
         ##config quitado de momento
-        self._config=ControlFile(label="    Model")
+        #self._config=ControlFile(label="    Model")
         self._listaClasi = ControlCombo(label='     List')
 
-        #for root, dirs, files in os.walk('./classifiers/'):
-        #    for file in files:
-        #        if file.endswith('.json'):
-                    
-        #            left_text = file.partition(".")[0]
-        #            print(left_text)
-        #            print(file.upper)
-        #            self._listaClasi.add_item(left_text)
         import os
 
         root = "./classifiers/"
         for item in os.listdir(root):
             if os.path.isfile(os.path.join(root, item)):
                 if item.endswith('.json'):
-                    print(item)
                     left_text = item.partition(".")[0]
                     self._listaClasi.add_item(left_text)
 
     
+        self._listaClasi.add_item('Sequential Model')
+        self._listaClasi.add_item('Functional Model')
 
-        #self._listaClasi.add_item('KNN')
-        #self._listaClasi.add_item('SVM')
-        #self._listaClasi.add_item('MLP')
-        self._listaClasi.add_item('KERAS')
+        self._listaClasi.changed_event=self.__deleteLoadedModel
 
         self._ajustes=ControlButton('Ajustar el clasificador')
 
-        self._config.changed_event=self.__confiUpdate
+        #self._config.changed_event=self.__confiUpdate
         
         self._ajustes.value=self._showSettings
 
-
+    """
     def __loadModel(self):
-        from joblib import load
+        from os.path import exists
+        import errorManager
+        import json
         if(self._loadModel.value!=''):
-            config=load(self._loadModel.value)
-            print(config.listaConfig)
-            self.parent._listaConfig=config.listaConfig
-            print(config.model)
-            self.parent._modelConfig=config.model
-            self.parent._modelBoolean=True
-            self._listaClasi.value=config.listaConfig[0]
-            self._showSettings
-
-
-        else:
-            #aqui deberia haber un popup warning
-            print('error')
+            if(self._loadModel.value.endswith('.json')):
+                if(exists(self._loadModel.value)):
+                    with open(self._loadModel.value) as json_file:
+                        data = json.load(json_file)
+                        self.parent._modelConfig=data
+                        self.parent._modelBoolean=True
+                        try:
+                            X=data['type']
+                        except:
+                            tempDict=data[0]
+                            X=tempDict['type']
+                        self.parent._showClassifierParams(X)
+                else:
+                    errorManager.error(self, "File doesn't exist", None)
+            else:
+                errorManager.error(self, "Error reading the model file", None)
+                self._loadModel.value=""
+    """
         
+    def __deleteLoadedModel(self):
+        self.parent._modelBoolean=False
+        #self._loadModel.value=""
 
 
-    def __confiUpdate(self):
-        left_text = self._config.value.partition("!")[0]
-        self._listaClasi.value=left_text    
+    def __loadStringModel(self):
+        import json
+        dict=json.loads(self._loadModelString.value)
+        data=dict
+        self.parent._modelConfig=data
+        self.parent._modelBoolean=True
+
+        try:
+            
+            X=data['type']
+        except:
+            
+            tempDict=data[0]
+            X=tempDict['type']
+        self.parent._showClassifierParams(X)
+
+
+    #def __confiUpdate(self):
+    #    left_text = self._config.value.partition("!")[0]
+    #    self._listaClasi.value=left_text    
 
     def _showSettings(self):
         self.parent._showClassifierParams(self._listaClasi.value)
 
     def __loadFile(self):
-        
+        """
         df = pd.read_csv(self._loadFile.value, header = 0)
         
         original_headers = list(df.columns.values)
@@ -113,8 +139,23 @@ class classifiersWindow(BaseWidget):
         #clase.append(df[original_headers[shape[1]-1]].values)
         clase, extra= pd.factorize(df[original_headers[shape[1]-1]].values)           
         datos.append(dat2)
+        """
 
-
-        self.parent._output.value=[datos,clase]
-
-        self.parent.fileName=self._loadFile.value
+        from os.path import exists
+        import errorManager
+        import json
+        if(self._loadFile.value!=''):
+            if(self._loadFile.value.endswith('.csv') or self._loadFile.value.endswith('.arff')):
+                if(exists(self._loadFile.value)):
+                    self.parent.fileName=self._loadFile.value
+                    #self._loadModel.show() 
+                    self._loadModelString.show()
+                    self._loadModelStringAction.show()
+                else:
+                    errorManager.error(self, "File doesn't exist", None)
+            else:
+                errorManager.error(self, "Error reading the model file", None)
+                #self._loadModel.value=""
+        else:
+            self.parent.fileName=''
+            errorManager.error(self, "File doesn't exist", None)

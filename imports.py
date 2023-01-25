@@ -12,7 +12,9 @@ import sys
 from numpy import random
 
 from sklearn.model_selection import train_test_split
-from sklearn import neighbors, datasets, svm
+from sklearn import neighbors, datasets, svm, linear_model
+import sklearn
+from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report, hamming_loss,jaccard_score

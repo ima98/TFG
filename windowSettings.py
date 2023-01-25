@@ -11,7 +11,36 @@ class settingsWindow(BaseWidget):
         self.type=type
         #print(type)
         #https://medium.com/@svanillasun/how-to-deal-with-cross-validation-based-on-knn-algorithm-compute-auc-based-on-naive-bayes-ff4b8284cff4
-        #self._titulo.add_popup_menu_option('option 0', function_action=self._help)    
+        #self._titulo.add_popup_menu_option('option 0', function_action=self._help)
+
+
+    #TEST OPTIONS
+        self._testOptionsCombo=ControlCombo()
+        self._testOptionsCombo.add_item('Cross-validation')
+        self._testOptionsCombo.add_item('Percentage split')
+        self._testOptionsCombo.changed_event=self.__testOptionsChanged
+
+                #CROSS VALIDATION
+                #StratifiedKFold
+        self._StratifiedKFoldNSplits=ControlNumber('Number of folds')
+        self._StratifiedKFoldNSplits.min=2
+        self._StratifiedKFoldNSplits.decimals=0
+
+        self._StratifiedKFoldShuffle=ControlCheckBox('Shuffle')
+
+
+                #train_test_split
+        self._sk_train_test_split_test_size=ControlNumber('Train test split')
+        self._sk_train_test_split_test_size.decimals=3
+        self._sk_train_test_split_test_size.min=0.0
+        self._sk_train_test_split_test_size.max=1.0
+        self._sk_train_test_split_test_size.value=0.25
+        self._sk_train_test_split_test_size.hide()
+        self._sk_random_state=ControlNumber('Random state')
+        self._sk_random_state.hide()
+        self._sk_shuffle=ControlCheckBox('Shuffle train test split')
+        self._sk_shuffle.hide()    
+            
         #SKLEARN
         if(self.type=="SKLEARN"):
             #cross validation
@@ -21,6 +50,7 @@ class settingsWindow(BaseWidget):
 
             self._cv.changed_event=self.__cv_Changed      
             self._cv_Integer=ControlNumber('cv Integer')
+            self._cv_Integer.value=2
             #   shuffle cross validation
             self._shuffle_n_splits=ControlNumber('Shuffle n splits')
             self._shuffle_n_splits.hide()
@@ -30,11 +60,11 @@ class settingsWindow(BaseWidget):
             self._shuffle_test_size.decimals=3
             self._shuffle_test_size.min=0.0
             self._shuffle_test_size.max=1.0
-            self._shuffle_train_size=ControlNumber('Shuffle train size')
-            self._shuffle_train_size.hide()
-            self._shuffle_train_size.decimals=3
-            self._shuffle_train_size.min=0.0
-            self._shuffle_train_size.max=1.0
+            #self._shuffle_train_size=ControlNumber('Shuffle train size')
+            #self._shuffle_train_size.hide()
+            #self._shuffle_train_size.decimals=3
+            #self._shuffle_train_size.min=0.0
+            #self._shuffle_train_size.max=1.0
             self._shuffle_random_state=ControlNumber('Shuffle random state')
             self._shuffle_random_state.hide()
             #   scoring cross
@@ -43,6 +73,25 @@ class settingsWindow(BaseWidget):
             for x in listaScores:
                 self._cv_scoring.add_item(x)
 
+
+            
+
+            self.formset = [
+                'h3:test options',
+            '_testOptionsCombo','_StratifiedKFoldNSplits', '_StratifiedKFoldShuffle', '_sk_train_test_split_test_size',
+            '_sk_random_state',
+            '_sk_shuffle','=',
+            'h3:cross validation', 
+            '_cv','_cv_Integer',
+            '_shuffle_n_splits', '_shuffle_test_size','_shuffle_random_state','=',
+            'h3:scoring cross',
+            '_cv_scoring','='
+            
+            ]   
+
+        #SEQUENTIAL
+        #compile
+        else:
             #train_test_split
             self._sk_train_test_split_test_size=ControlNumber('Train test split')
             self._sk_train_test_split_test_size.decimals=3
@@ -52,26 +101,12 @@ class settingsWindow(BaseWidget):
             self._sk_random_state=ControlNumber('Random state')
             self._sk_shuffle=ControlCheckBox('Shuffle train test split')
 
-            self.formset = [
-            'h3:cross validation', 
-            '_cv','_cv_Integer',
-            '_shuffle_n_splits', '_shuffle_test_size','_shuffle_train_size','_shuffle_random_state','=',
-            'h3:scoring cross',
-            '_cv_scoring','=',
-            'h3:train_test_split',
-            '_sk_train_test_split_test_size'
-            ]   
-
-        #SEQUENTIAL
-        #compile
-        else:
-            print(self.type)
-
             self._seq_optimizers=ControlCombo('Compile optimizers')
             self._seq_optimizers.hide
             optiList=["Adadelta", "Adagrad", "Adam", "Adamax", "FTRL", "Nadam", "Optimizer", "RMSprop", "SGB"]
             for x in optiList:
                 self._seq_optimizers.add_item(x)
+            self._seq_optimizers.value="RMSprop"
             
             self._seq_loss=ControlCombo('Compile loss')
             self._seq_loss.hide
@@ -91,7 +126,10 @@ class settingsWindow(BaseWidget):
 
             listaMetrics=[]
             for x in metricList:
-                listaMetrics.append((x,False))
+                if(x=="Accuracy"):
+                    listaMetrics.append((x,True))
+                else:
+                    listaMetrics.append((x,False))
             self._seq_metrics.value=listaMetrics
       
             self._seq_compile_steps_per_execution=ControlNumber('Compile steps per execution')
@@ -116,6 +154,10 @@ class settingsWindow(BaseWidget):
             
 
             self.formset = [
+             'h3:test options',
+            '_testOptionsCombo','_StratifiedKFoldNSplits', '_StratifiedKFoldShuffle', '_sk_train_test_split_test_size',
+            '_sk_random_state',
+            '_sk_shuffle','=',
             'h3:compile', 
             '_seq_optimizers','_seq_loss','_seq_metrics','_seq_compile_steps_per_execution','=',
             'h3:fit',
@@ -123,43 +165,34 @@ class settingsWindow(BaseWidget):
             ]   
 
 
-        """
-    def __update(self):
-        print("update")
-        if self.type=="SKLEARN":
-            self._cv.show
-        else:
-            self._seq_optimizers.show
-            self._seq_metrics.show
-            self._seq_loss.show
-        """
-
-
-
-
-
-
-
-
-   
-
-        
 
     def __cv_Changed(self):
-        print(self.type)
         if(self._cv.value=='Integer'):
             
             self._cv_Integer.show()
             self._shuffle_n_splits.hide()
             self._shuffle_test_size.hide()
-            self._shuffle_train_size.hide()
+            #self._shuffle_train_size.hide()
             self._shuffle_random_state.hide()
         else:
             self._cv_Integer.hide()
             self._shuffle_n_splits.show()
             self._shuffle_test_size.show()
-            self._shuffle_train_size.show()
+            #self._shuffle_train_size.show()
             self._shuffle_random_state.show()
        
+    def __testOptionsChanged(self):
+        if self._testOptionsCombo.value=='Cross-validation':
+            self._StratifiedKFoldNSplits.show()
+            self._StratifiedKFoldShuffle.show()
+            self._sk_train_test_split_test_size.hide()
+            self._sk_random_state.hide()
+            self._sk_shuffle.hide()
+        else:
+            self._StratifiedKFoldNSplits.hide()
+            self._StratifiedKFoldShuffle.hide()
+            self._sk_train_test_split_test_size.show()
+            self._sk_random_state.show()
+            self._sk_shuffle.show()
 
     

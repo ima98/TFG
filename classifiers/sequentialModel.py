@@ -21,15 +21,15 @@ import sys
 #https://stackoverflow.com/questions/52591862/how-can-i-save-an-object-containing-keras-models
 #https://stackoverflow.com/questions/39369671/can-i-store-a-file-hdf5-file-in-another-file-with-serialization/39386944#39386944
 class sequentialModel(BaseWidget):
-    def __init__(self, father, X,Y):
+    def __init__(self, father):
         self.parent=father
         
         self.model=Sequential()
-        self.model.add(Dense(12, input_shape=(8,), activation='relu'))
+        
         BaseWidget.__init__(self,'Sequential mode')
         
         self.layers=[]
-        self.layersConfig=[]
+        self.layerNames=[]
         
         self._layerType=ControlCombo('layer types')
         root = "./classifiers/layers"
@@ -40,13 +40,9 @@ class sequentialModel(BaseWidget):
                     left_text = item.partition(".")[0]
                     self._layerType.add_item(left_text)
 
-
-        #self._layerType.add_item('prueba')
         
         self._layerCombo=ControlCombo('layers')
-        #self._layerCombo.add_item('de prueba')
-        #self._layerCombo.changed_event=self.__editLayer
-        
+ 
         self._addLayer=ControlButton('Config Layer')
         self._addLayer.value=self.__addLayer
         self._deleteLayer=ControlButton('Delete layer')
@@ -57,7 +53,6 @@ class sequentialModel(BaseWidget):
         
         
         self._layer=ControlEmptyWidget()
-
         self._layerEdit=ControlEmptyWidget()
         
         self._execute=ControlButton('Execute')
@@ -73,24 +68,21 @@ class sequentialModel(BaseWidget):
         self._generatePy=ControlButton('Generate Py')
         self._generatePy.value=self.__generatePy
 
-        self.formset=['_layerType','_addLayer', '_layer','_layerCombo','_layerEdit',('_deleteLayer', '_editLayer', '_editLayerOrder'),('_generatePy'),'_execute']
+        self._saveModel=ControlButton('Save model')
+        self._saveModel.value=self.__saveModel
+
+        self.formset=['_layerType','_addLayer', '_layer','_layerCombo','_layerEdit',('_deleteLayer', '_editLayer', '_editLayerOrder'),('_generatePy', '_saveModel'),'_execute']
         
 
-        if self.parent._listaConfig!=[] and self.parent._modelBoolean:
-            self.__loadSettings(self.parent._listaConfig[1:])
+        if self.parent._modelConfig is not None and self.parent._modelBoolean:
+            self.__loadSettings(self.parent._modelConfig)
+
+        
         
     
     def __addLayer(self):
         self._layerEdit.hide()
         self._layer.show()
-        #if(self._layerType.value=='ltsm'):
-        #    prueba=ltsm()
-        #    prueba.parent=self
-        #    self._layer.value=prueba
-        #elif(self._layerType.value=='Dense'):
-        #    prueba=dense()
-        #    prueba.parent=self
-        #    self._layer.value=prueba
         prueba=layer(self._layerType.value, self)
         
         prueba.parent=self
@@ -100,11 +92,8 @@ class sequentialModel(BaseWidget):
                 
     def __addLayerToModel(self, l):
         self.layers.append(l)
-        #self.parent._modelConfig=self.layers
         self._layerCombo.add_item(l['_name'],l)
         self._layer.hide()
-        #self.model.add(l)
-        #self.parent.nextInputSize=l.output_shape
         print(self.layers)
 
 
@@ -117,7 +106,6 @@ class sequentialModel(BaseWidget):
             
 
     def __editLayerOrder(self):
-
         self.windowOrder.show()
         self.windowOrder.updateLista(self.layers)
 
@@ -127,13 +115,10 @@ class sequentialModel(BaseWidget):
         
 
     def _layer__addEditedLayer(self, dic):
-        #self._layerCombo.value=dic
         for item in self.layers:
             if item['self._name']==dic['self._name']:
                 self.layers[self.layers.index(item)]=dic
         
-        #print("lista")
-        #print(self.layers)
         self._layerEdit.hide()
         
         
@@ -150,8 +135,6 @@ class sequentialModel(BaseWidget):
 
     
     def __generateComboFromList(self):
-        #print(self._layerCombo.value)
-        #print("AAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         self._layerCombo.clear()
         for layerDic in self.layers:
             #print(layerDic)
@@ -160,23 +143,64 @@ class sequentialModel(BaseWidget):
         #print(self._layerCombo.items)
         
     def __generatePy(self):
-        fname='generated.py'
-        with open(fname, 'w') as f:
-            f.write("import tensorflow as tf")
-            f.write('\n')
-            f.write("dataset = loadtxt("+"'"+'diabetes.csv'+"'"+", delimiter=',')")
-        f.close()
+        import fileGenerator
+        toAdd=""
+        stringList=[]
+        for layerDic in self.layers:
+                cons=layerDic['constructor']
+                m='layerTemp='+cons
+                stringList.append(m)
+
+        listaMetrics=self.__getListaMetrics()
+        compileList=[self.parent._ajustesEjecucion.value._seq_optimizers.value, self.parent._ajustesEjecucion.value._seq_loss.value, int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
+            listaMetrics]
+
+        fitList=[int(self.parent._ajustesEjecucion.value._fit_epochs.value), int(self.parent._ajustesEjecucion.value._fit_batch_size.value), self.parent._ajustesEjecucion.value._fit_verbose.value, 
+            self.parent._ajustesEjecucion.value._fit_validation_split.value]
+
+        fileGenerator.fileGeneratorSequentialModel(stringList, self.parent.fileName, compileList, fitList)
+
+
+    def __getListaMetrics(self):
+        listaMetrics=self.parent._ajustesEjecucion.value._seq_metrics.items
+        l2=[]
+        for x in listaMetrics:
+                if x[1]==True:
+                    l2.append(x[0])
+        return l2
+
+    def __saveModel(self):
+        temp=self.layers
+        typeTemp=[("type", "Sequential Model")]
+        head=dict(typeTemp)
+        temp.insert(0, head)
+        data= json.dumps(temp, indent=2)
+        with open("sample.json", "w") as outfile:
+            outfile.write(data)
+
+    def __loadSettings(self, lista):
+        lista.pop(0)
+        self.layers=lista
+        for x in lista:
+            self.layerNames.append(x['self._name'])
+        self.__generateComboFromList()
+
 
     def __execute(self):
 
         dataset = loadtxt(self.parent.fileName, delimiter=',')
-
         
-        
-
         # split into input (X) and output (y) variables
         X = dataset[:,0:dataset.shape[1]-1]
         y = dataset[:,dataset.shape[1]-1]
+
+
+
+        from sklearn.model_selection import train_test_split
+        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+
+        
         model = Sequential()
 
         for layerDic in self.layers:
@@ -184,87 +208,70 @@ class sequentialModel(BaseWidget):
             m='layerTemp='+cons
             exec(m)
             exec("model.add(layerTemp)")
-            
 
-        """
-        model.add(Dense(8, activation='relu'))
-        model.add(Dense(12, input_shape=(8,), activation='relu'))
+
+
+        import datetime
+        temp=self.layers
+        typeTemp=[("type", "Sequential Model")]
+        head=dict(typeTemp)
+        temp.insert(0, head)
+        now = datetime.datetime.now()
+        self.parent._listaAnteriores.value.listaHistorial.append((("Sequential"+'-'+str(now.hour)+'-'+str(now.minute)+'-'+str(now.second)), temp))
+        self.parent._listaAnteriores.value.__update()
+
+
         
-        model.add(Dense(1, activation='sigmoid'))
-        """
-        #sys.stdout = buffer = StringIO()
-        
+        import errorManager
         try:
-            listaMetrics=self.parent._ajustesEjecucion.value._seq_metrics.items
-            l2=[]
-            for x in listaMetrics:
-                if x[1]==True:
-                    l2.append(x[0])
-            print(l2)
-            model.compile(optimizer='rmsprop', metrics=['Accuracy'])
-            #model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value,
-            #metrics=l2)
-        except:
-            print("There was some error with the fit, using default compile")
-            model.compile(optimizer='rmsprop', metrics=['Accuracy'])
+            listaMetrics=self.__getListaMetrics()
+
+            model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
+            metrics=listaMetrics)
+        except Exception as e:
+            errorManager.error(self, "Error during model compile", e)
 
 
-        print("PRIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIINT")
-        print(self.parent._ajustesEjecucion.value._fit_epochs.value)
 
         #FIT
         try:
-            model.fit(X,y, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+            model.fit(X_train,y_train, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
             validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
 
-        except:
-            print("There was some error with the fit, using default fit")
-            model.fit(X, y, epochs=20, batch_size=10)
-        
-        #result=buffer.getvalue()
-        result=""
+        except Exception as e:
+            errorManager.error(self, "Error during model fit", e)
 
-        _, accuracy = model.evaluate(X, y)
-        
-        print('Accuracy: %.2f' % (accuracy*100))
-        #result=result+"\n And the accuracy: "+buffer.getvalue()
+        sys.stdout = buffer = StringIO()
+
+        print(self.parent._ajustesEjecucion.value._fit_epochs.value)
+
+      
         model.summary()
-        #result=result+"\n And the summary: "+buffer.getvalue()
+        
+        try:
+             _, accuracy = model.evaluate(X_test, y_test, y)
+             print('Accuracy: %.2f' % (accuracy*100))
+
+        except Exception as e:
+            errorManager.error(self, "Error during model evaluation", e)   
+
+        result=buffer.getvalue()
 
         self.parent._output.value=result
         
 
-        """
-        dataset = loadtxt('diabetes.csv', delimiter=',')
-        X = dataset[:,0:8]
-        y = dataset[:,8]
-
-        #https://www.tensorflow.org/api_docs/python/tf/keras/Model
-        #variables del compile
-        self.model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-        self.model.fit(X, y, epochs=150, batch_size=10)
-        
-        
-        _, accuracy = self.model.evaluate(X, y)
-        self.parent._output.value=accuracy
-        
-        for x in self.layers:
-            self.model.add(x)
-            """
-
-    def __loadSettingsFromModel(self, lista):
-        self.layers=lista
         
 
 class WindowLayerOrder(QWidget):
 
     def __init__(self, parent):
         super().__init__()
-        
         self.setAcceptDrops(True)
-        self.blayout = QHBoxLayout()
+        
+        self.blayout = QVBoxLayout()
         self.lista=[]
         self.father=parent
+        
         
     def getLista(self):
         return self.lista
@@ -326,6 +333,7 @@ class DragButton(QPushButton):
     def __init__(self):
         super().__init__()
         self.data= None
+        self.blayout = QHBoxLayout()
 
     def setData(self, item):
         self.data=item

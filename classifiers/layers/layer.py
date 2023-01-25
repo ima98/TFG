@@ -29,6 +29,8 @@ class layer(BaseWidget):
         self._name=ControlText('name')
         if(len(args) > 2):
             self._name.readonly=True
+            t=args[2]
+            self.layerType=t['type']
 
         __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
         with open(os.path.join(__location__,self.layerType+'.json')) as f:
@@ -42,8 +44,6 @@ class layer(BaseWidget):
 
         
         if(len(args) > 2):
-            print("entra en los args")
-            print(args[2])
             self.__setValuesFromDic(args[2])
             self._addLayer=ControlButton('Edit Layer')
             self._addLayer.value=self.__addEditedLayer
@@ -55,7 +55,7 @@ class layer(BaseWidget):
 
     def __setValuesFromDic(self, dic):
         for item in dic.items():
-            if(item[0]!='constructor'):
+            if(item[0]!='constructor' and item[0]!='type'):
                 try:
                     exec(item[0]+'.value='+"'"+item[1]+"'")
                 except:
@@ -131,6 +131,7 @@ class layer(BaseWidget):
         cons=cons[:-2]
         cons=cons+")"
         lista.append(("constructor", cons))
+        lista.append(("type",self.layerType))
         return lista
 
     def __loadSettings(self, lista):
@@ -150,13 +151,14 @@ class layer(BaseWidget):
 
 
     def __addLayer(self):
+        import errorManager
         l=self.__getConfig()
         dic=dict(l)
+        if(dic['self._name'] not in self.parent.layerNames):
+            self.parent.layers.append(dic)
+            self.parent._layerCombo.add_item(dic['self._name'],dic)
+            self.parent._layer.hide() 
+            self.parent.layerNames.append(dic['self._name'])
+        else:
+            errorManager.error(self, "Name already used by another layer", None)
 
-        #print(dic.items())
-        #print(dic)
-        #self.parent.__addLayerToModel(dic)
-        self.parent.layers.append(dic)
-        self.parent._layerCombo.add_item(dic['self._name'],dic)
-        self.parent._layer.hide()
-        #print(self.parent.layers)

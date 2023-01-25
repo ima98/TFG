@@ -1,7 +1,4 @@
 from asyncio.windows_events import NULL
-from classifiers.KNNsettings import KNNsettings
-from classifiers.SVMsettings import SVMsettings
-from classifiers.MLPsettings import MLPsettings
 from windowHistory import historyWindow
 from windowClassifiers import classifiersWindow
 from imports import *
@@ -12,6 +9,7 @@ conf+=settings
 import matplotlib.pyplot as plt
 from windowSettings import settingsWindow
 from classifiers.sequentialModel import sequentialModel
+from classifiers.functionalModel import functionalModel
 from classifiers.sklearnBase import *
 
 
@@ -25,22 +23,13 @@ class mainWindow(BaseWidget):
 
         self.setMinimumWidth(800)
         self.setMinimumHeight(600)
-        
-        self.actualCSV=0
-        self.X=0
-        self.y=0
+
 
         self.fileName=''
-        
-        #self._loadFile     = ControlFile('Load data')
-        #self._loadFile.changed_event=self._loadFile.value
-        #self._figura=ControlMatplotlib()
-      
 
         self._output    =ControlTextArea()
-        #self._output.setReadOnly(True)
         self._output.scrollbar=True
-        #self._output.value=self._loadFile.value
+   
 
         self._code=ControlDockWidget()
         self._code.hide()
@@ -48,7 +37,7 @@ class mainWindow(BaseWidget):
         self._botonCodigo.value=self._showCode
 
         self._classifierParams=ControlEmptyWidget()
-        #self._classifierParams.hide()
+ 
 
         self._graph = ControlMatplotlib()
 
@@ -59,14 +48,11 @@ class mainWindow(BaseWidget):
         self._miniV.value=variable
 
         self._ajustesEjecucion=ControlDockWidget()
-        ajustesVentana=settingsWindow("SKLEARN")
-        #self.listaAjustes=[]
+        #ajustesVentana=settingsWindow("SKLEARN")
 
 
-        #self._ejecucionesAnteriores=ControlDockWidget()
-        #historial=historyWindow()
-        #historial.parent=self
-        #self._ejecucionesAnteriores.value=historial
+        self._listaAnteriores=ControlDockWidget()
+        self._listaAnteriores.value=historyWindow(self)
 
         self._nameSaveFile=ControlText('Save file name')
         self._save=ControlButton('Save')
@@ -87,52 +73,45 @@ class mainWindow(BaseWidget):
         self._modelConfig=''
 
     def __save(self):
-        m=modelConfig(self._listaConfig, self._modelConfig)
-        t=self._nameSaveFile.value
-        if self._nameSaveFile.value=='' :
-            t='demo'
-        
-        from joblib import dump
-
-        dump(m, t+'.joblib')
-
-        
-
-    
-        
+        if self._miniV.value._listaClasi.value=='Sequential Model':
+            print("keras")
+        else:
+            print("sklearn")
 
     def _showCode(self):
 
         prueba=ControlCodeEditor()
-        prueba.value=self.actualCSV
-        #self._output.value=self.actualCSVseRepiteNVeces (3, [a, b, c, e, f, a, b, f, h, g, h, f, a, i, c], S)
+        #prueba.value=self.actualCSV
         self._code=prueba
         self._code.show()
 
     def _showClassifierParams(self, X):
-        
+        from os.path import exists
+        import errorManager
+        if(exists(self.fileName) and self.fileName!=''):
+            if X=='Sequential Model':
+                prueba=sequentialModel(self)
+                ajustesVentana=settingsWindow("KERAS")
+                ajustesVentana.parent=self
+                self._ajustesEjecucion.value=ajustesVentana
 
-        if X=='KERAS':
-            prueba=sequentialModel(self,NULL,NULL)
-            ajustesVentana=settingsWindow("KERAS")
-            ajustesVentana.parent=self
-            self._ajustesEjecucion.value=ajustesVentana
-            print("antes")
-            print(self._ajustesEjecucion.value.type)
-            print("despues")
+            elif X=='Functional Model':
+                prueba=functionalModel(self)
+                ajustesVentana=settingsWindow("KERAS")
+                ajustesVentana.parent=self
+                self._ajustesEjecucion.value=ajustesVentana
+
+            else:
+                prueba=sklearnBase(self, X)
+                ajustesVentana=settingsWindow("SKLEARN")
+                ajustesVentana.parent=self
+                self._ajustesEjecucion.value=ajustesVentana
+
+            self._classifierParams.value=prueba
+            self._classifierParams.show()
         else:
-            prueba=sklearnBase(self, NULL, NULL, X)
-            ajustesVentana=settingsWindow("SKLEARN")
-            ajustesVentana.parent=self
-            self._ajustesEjecucion.value=ajustesVentana
+            errorManager.error(self, "File doesn't exist", None)
             
-        
-        #self._ajustesEjecucion.value._settingsWindow__update
-
-        self._classifierParams.value=prueba
-        self._classifierParams.show()
-        self._modelBoolean=False 
-    
     
     def _updateConfig(self, c):
         self.variable._config.value=c

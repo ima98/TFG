@@ -1,10 +1,10 @@
 {
-    "n_neighbors":["Integer",5],
+    "n_neighbors":["Integer"],
     "weights":["Combo","uniform","distance"],
     "algorithm":["Combo","auto","ball_tree", "kd_tree", "brute"],
     "leaf_size":["Integer",30],
     "p":["Integer",2],
     "metric":["Combo","minkowski","cityblock", "cosine", "euclidean","haversine", "l1", "l2", "manhattan", "nan_euclidean"],
-    "n_jobs":["Integer"],
-    "constructor":"neighbors.KNeighborsClassifier()"
+    "n_jobs":["Integer", 1],
+    "constructor":"sklearn.neighbors.KNeighborsClassifier()"
 }
