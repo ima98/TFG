@@ -16,9 +16,10 @@ from classifiers.sklearnBase import *
 #constructor del basewidget menu principal
 class mainWindow(BaseWidget):
 
-    #globales
-
     def __init__(self):
+        """ inits the main window
+        
+        """
         super(mainWindow,self).__init__('Prueba grafica')
 
         self.setMinimumWidth(800)
@@ -33,8 +34,8 @@ class mainWindow(BaseWidget):
 
         self._code=ControlDockWidget()
         self._code.hide()
-        self._botonCodigo= ControlButton('View code')
-        self._botonCodigo.value=self._showCode
+        self._botonCodigo= ControlButton('Save as txt')
+        self._botonCodigo.value=self._saveOutput
 
         self._classifierParams=ControlEmptyWidget()
  
@@ -48,47 +49,44 @@ class mainWindow(BaseWidget):
         self._miniV.value=variable
 
         self._ajustesEjecucion=ControlDockWidget()
-        #ajustesVentana=settingsWindow("SKLEARN")
-
 
         self._listaAnteriores=ControlDockWidget()
         self._listaAnteriores.value=historyWindow(self)
 
         self._nameSaveFile=ControlText('Save file name')
-        self._save=ControlButton('Save')
-        self._save.value=self.__save
+
         self._modelBoolean=False
 
         self._formset=[
             {
             'Carga de datos':['_classifierParams'],
             
-            'Clasificador':['_output',('_nameSaveFile','_save'),'_botonCodigo']
+            'Clasificador':['_output',('_nameSaveFile','_botonCodigo')]
             }
             ]
         
-    
-        #configuración para guardar
+
         self._listaConfig=[]
         self._modelConfig=''
 
-    def __save(self):
-        if self._miniV.value._listaClasi.value=='Sequential Model':
-            print("keras")
-        else:
-            print("sklearn")
+    def _saveOutput(self):
+        """ guarda el output
+        
+        """
+        f= open(self._nameSaveFile.value+".txt","w+")
+        f.write(self._output.value)
+        f.close()
 
-    def _showCode(self):
-
-        prueba=ControlCodeEditor()
-        #prueba.value=self.actualCSV
-        self._code=prueba
-        self._code.show()
 
     def _showClassifierParams(self, X):
+        """ inicializa la ventaja de ajustes
+        
+        :param X: clasificador seleccionado
+        """
         from os.path import exists
         import errorManager
-        if(exists(self.fileName) and self.fileName!=''):
+        #exists(self.fileName) and
+        if( self.fileName!=''):
             if X=='Sequential Model':
                 prueba=sequentialModel(self)
                 ajustesVentana=settingsWindow("KERAS")
@@ -115,6 +113,3 @@ class mainWindow(BaseWidget):
     
     def _updateConfig(self, c):
         self.variable._config.value=c
-
-    def _do_something():
-        "asasa"

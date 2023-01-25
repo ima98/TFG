@@ -178,6 +178,9 @@ class sequentialModel(BaseWidget):
         with open("sample.json", "w") as outfile:
             outfile.write(data)
 
+        #model.save('saved_model/my_model')
+        
+
     def __loadSettings(self, lista):
         lista.pop(0)
         self.layers=lista
@@ -188,12 +191,15 @@ class sequentialModel(BaseWidget):
 
     def __execute(self):
 
-        dataset = loadtxt(self.parent.fileName, delimiter=',')
-        
-        # split into input (X) and output (y) variables
-        X = dataset[:,0:dataset.shape[1]-1]
-        y = dataset[:,dataset.shape[1]-1]
+        import errorManager
+        try:
+            import helper
+            (X,y,_)=helper.getDataSet(self.parent.fileName)
 
+   
+        except Exception as e: 
+            errorManager.error(self, "Error loading the csv", e)
+            return
 
 
         from sklearn.model_selection import train_test_split
@@ -209,7 +215,7 @@ class sequentialModel(BaseWidget):
             exec(m)
             exec("model.add(layerTemp)")
 
-
+        
 
         import datetime
         temp=self.layers
@@ -220,7 +226,7 @@ class sequentialModel(BaseWidget):
         self.parent._listaAnteriores.value.listaHistorial.append((("Sequential"+'-'+str(now.hour)+'-'+str(now.minute)+'-'+str(now.second)), temp))
         self.parent._listaAnteriores.value.__update()
 
-
+        self.parent._miniV.value._loadModelString.value=str(temp)
         
         import errorManager
         try:

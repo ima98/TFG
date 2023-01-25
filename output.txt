@@ -1,0 +1,22 @@
+Scores: 
+[0.728223   0.75609756]Model params :
+<bound method BaseEstimator.get_params of KNeighborsClassifier(n_jobs=1, n_neighbors=7)>Prediction: [0 1 1 1 0 0 0 0 1 0 1 0 1 0 0 0 0 0 0 1 0 0 1 0 0 0 1 0 1 0 1 0 0 0 1 1 1
+ 0 1 0 0 0 0 0 1 0 1 0 0 0 1 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1 0 0
+ 0 0 0 0 0 1 0 1 0 0 1 1 1 0 0 0 0 0 0 1 1 0 0 1 0 1 1 0 0 0 0 1 0 0 0 0 1
+ 0 0 1 0 1 0 0 0 1 1 0 0 1 0 1 1 1 0 0 0 1 1 1 0 0 0 0 1 0 1 0 0 0 0 0 0 0
+ 0 1 0 0 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 1 0 0 0 1 0 1 0 0 1 0 0 0 1 1 1 0
+ 1 0 1 0 0 0 0]
+Confusion matrix
+[[98 24]
+ [34 36]]
+Accuracy matrix
+0.6979166666666666
+Classification report
+              precision    recall  f1-score   support
+
+           0       0.74      0.80      0.77       122
+           1       0.60      0.51      0.55        70
+
+    accuracy                           0.70       192
+   macro avg       0.67      0.66      0.66       192
+weighted avg       0.69      0.70      0.69       192

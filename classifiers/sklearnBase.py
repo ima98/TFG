@@ -7,6 +7,12 @@ from sklearn.model_selection import ShuffleSplit
 
 class sklearnBase(BaseWidget):
     def __init__(self, father,sklearn):
+        """ inicializa la ventana con los ajustes del clasificador
+        
+        :param father: ventana padre
+        :param sklearn: nombre del clasificador
+        
+        """
         BaseWidget.__init__(self,'SKLEARN window')
         self.parent = father
 
@@ -34,15 +40,17 @@ class sklearnBase(BaseWidget):
         for key,value in self.data.items():
             self.translate(key, value)
 
-        self._addLayer=ControlButton('execute')
-        self._addLayer.value=self.__execute
-
-
         self._saveModel=ControlButton('Save model')
         self._saveModel.value=self.__saveModel
 
         self._generatePy=ControlButton('Generate Py')
         self._generatePy.value=self.__generatePy
+
+        self._addLayer=ControlButton('Execute')
+        self._addLayer.value=self.__execute
+
+
+        
 
 
         if self.parent._modelConfig is not None and self.parent._modelBoolean:
@@ -56,6 +64,9 @@ class sklearnBase(BaseWidget):
 
 
     def __saveModel(self):
+        """guarda la configuración del modelo en formato JSON
+
+        """
         l=self.__getConfig()
         l[:0] = [('type',self.name)]
         dic=dict(l)
@@ -64,7 +75,11 @@ class sklearnBase(BaseWidget):
             json.dump(dic, fp)
 
     def translate(self, name,tipoJson):
-        
+        """transforma una tupla de key y value a un botón
+
+        :param name: llave del diccionario
+        :param tipoJson: valor del diccionario
+        """
         s=name
         if(tipoJson[0]=='Integer'):
             excep='_'+s
@@ -119,6 +134,10 @@ class sklearnBase(BaseWidget):
 
 
     def __loadSettings(self, dic):
+        """Carga los valores del diccionario en los botones
+
+        :param dic: diccionario
+        """
         dic=dict(dic)
         for x, y in dic.items():
             if x not in ["type", "constructor"]:
@@ -133,6 +152,9 @@ class sklearnBase(BaseWidget):
 
 
     def __getConfig(self):
+        """Generá una lista con los botones y sus valores
+        :return: (list) devuelve la lista generada
+        """
         varAll=vars(self)
         lista=[]
         for var in varAll:
@@ -165,6 +187,10 @@ class sklearnBase(BaseWidget):
 
 
     def __addToHist(self, l):
+        """Añade la ejecución al historial de ejecuciones
+
+        :param l: lista con la configuración
+        """
         import datetime
         addH=l
         addH[:0] = [('type',self.name)]
@@ -174,13 +200,10 @@ class sklearnBase(BaseWidget):
         self.parent._listaAnteriores.value.__update()
 
     def __generatePy(self):
+        """Llama al generador de código con las variables
+        """
         import fileGenerator
         toAdd=""
-
-
-        #listaMetrics=self.__getListaMetrics()
-        #compileList=[self.parent._ajustesEjecucion.value._seq_optimizers.value, self.parent._ajustesEjecucion.value._seq_loss.value, int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
-        #    listaMetrics]
 
         train_test_splitList=[self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
             self.parent._ajustesEjecucion.value._sk_random_state.value, self.parent._ajustesEjecucion.value._sk_shuffle.value]
@@ -194,7 +217,8 @@ class sklearnBase(BaseWidget):
 
 
     def __execute(self):
-            
+        """Genera el clasificador y lo ejecuta
+        """
 
             
             #from sklearn.datasets import load_iris
@@ -202,41 +226,17 @@ class sklearnBase(BaseWidget):
             #iris = load_iris()
             #X = iris.data[:, :2]  # we only take the first two features.
             #y = iris.target
-            """
-            from numpy import loadtxt
-            dataset = loadtxt(self.parent.fileName, delimiter=',', dtype=int)
+        import errorManager
+        try:
+            import helper
+            (X,y,_)=helper.getDataSet(self.parent.fileName)
 
-            
-            
+   
+        except Exception as e: 
+            errorManager.error(self, "Error loading the csv", e)
+            return
 
-            # split into input (X) and output (y) variables
-            X = dataset[:,0:dataset.shape[1]-1]
-            y = dataset[:,dataset.shape[1]-1]
-            
-
-
-            iris = datasets.load_iris()
-            X = iris.data[:, :4]  # we only take the first two features.
-            y = iris.target
-"""
-            import errorManager
-            try:
-
-                from pandas import read_csv
-
-                inputData = read_csv(self.parent.fileName, delimiter=',', header=1)
-
-                y = inputData.iloc[:,inputData.shape[1]-1]
-
-                
-
-                X=inputData.iloc[:, 0:inputData.shape[1]-2]
-
-                
-            except Exception as e: 
-                errorManager.error(self, "Error loading the csv", e)
-
-            from sklearn.linear_model import LinearRegression
+        from sklearn.linear_model import LinearRegression
 
 
             #https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
@@ -244,52 +244,54 @@ class sklearnBase(BaseWidget):
             #https://medium.com/dunder-data/from-pandas-to-scikit-learn-a-new-exciting-workflow-e88e2271ef62
 
             
-            from sklearn.model_selection import train_test_split
-            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
-            random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+        from sklearn.model_selection import train_test_split
+        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
 
 
 
-            l=self.__getConfig()
-            dic=dict(l)
+        l=self.__getConfig()
+        dic=dict(l)
+
+        self.parent._miniV.value._loadModelString.value=str(dic)
 
             
-            m=dic["constructor"]
+        m=dic["constructor"]
 
-            from numpy import fromstring
+        from numpy import fromstring
 
 
-            if(self.loadInputX==True and self.loadInputY==True):
+        if(self.loadInputX==True and self.loadInputY==True):
 
                 parts=m.partition('(')
                 newC=parts[0]+'(X_train, y_train, '+parts[2]
                 m=newC
-            elif(self.loadInputX==True and self.loadInputY==False):
+        elif(self.loadInputX==True and self.loadInputY==False):
                 parts=m.partition('(')
                 newC=parts[0]+'(X_train, '+parts[2]
                 m=newC
                 
 
-            result=""
+        result=""
 
-            self.modelo=LinearRegression()
+        self.modelo=LinearRegression()
 
-            m2='self.modelo='+m
-            exec(m2)
+        m2='self.modelo='+m
+        exec(m2)
 
 
-            self.__addToHist(l)
+        self.__addToHist(l)
 
 
             
-            try:
+        try:
                 self.modelo.fit(X_train,y_train)
-            except Exception as e: 
+        except Exception as e: 
                 errorManager.error(self, "Error during fit", e)
                 
             
             
-            try:
+        try:
                 if(self.parent._ajustesEjecucion.value._cv.value=="Integer"):
                     scores=cross_val_score(self.modelo, X_train, y_train, cv= int(self.parent._ajustesEjecucion.value._cv_Integer.value))
                 else:  
@@ -297,40 +299,40 @@ class sklearnBase(BaseWidget):
                     random_state=int(self.parent._ajustesEjecucion.value._shuffle_random_state.value))
                     scores=cross_val_score(self.modelo, X_train, y_train, cv= cvTemp)
                 result="Scores: "+"\n"+str(scores)               
-            except Exception as e:
+        except Exception as e:
                 errorManager.error(self, "Error during score calculation", e)
                 
 
             #OUTPUT
-            try:
+        try:
                 params=self.modelo.get_params
             
                 result=result+"Model params :" +"\n"+str(params)
-            except:
+        except:
                 None
 
 
             #predicción de las variables
-            y_predict=self.modelo.predict(X_test) 
+        y_predict=self.modelo.predict(X_test) 
 
-            result=result+"Prediction: "+str(y_predict)
+        result=result+"Prediction: "+str(y_predict)
             #https://scikit-learn.org/stable/modules/model_evaluation.html            
             #confussion matrix
 
             
-            matrix=sklearn.metrics.confusion_matrix(y_test, y_predict)
-            result=result+"\n"+"Confusion matrix" +"\n"+str(matrix)
+        matrix=sklearn.metrics.confusion_matrix(y_test, y_predict)
+        result=result+"\n"+"Confusion matrix" +"\n"+str(matrix)
             #[[16  0  0]
             #[ 0  4  1]
             #[ 0  1  8]]
         
             #accuracy score
-            accuracy=sklearn.metrics.accuracy_score(y_test,y_predict)
-            result=result+"\n"+"Accuracy matrix" +"\n"+str(accuracy)
+        accuracy=sklearn.metrics.accuracy_score(y_test,y_predict)
+        result=result+"\n"+"Accuracy matrix" +"\n"+str(accuracy)
 
             #classification_report
-            report=sklearn.metrics.classification_report(y_test,y_predict)
-            result=result+"\n"+"Classification report" +"\n"+str(report)
+        report=sklearn.metrics.classification_report(y_test,y_predict)
+        result=result+"\n"+"Classification report" +"\n"+str(report)
 
             #hamming=hamming_loss(y_test, y_predict)
             #0.06666666666666667
@@ -338,5 +340,5 @@ class sklearnBase(BaseWidget):
             #jacc=jaccard_score(y_test,y_predict)
             #exec('self.parent._output.value=result')
 
-            self.parent._output.value=result
+        self.parent._output.value=result
             

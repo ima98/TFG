@@ -53,9 +53,7 @@ class classifiersWindow(BaseWidget):
 
         self._listaClasi.changed_event=self.__deleteLoadedModel
 
-        self._ajustes=ControlButton('Ajustar el clasificador')
-
-        #self._config.changed_event=self.__confiUpdate
+        self._ajustes=ControlButton('Start')
         
         self._ajustes.value=self._showSettings
 
@@ -86,7 +84,7 @@ class classifiersWindow(BaseWidget):
         
     def __deleteLoadedModel(self):
         self.parent._modelBoolean=False
-        #self._loadModel.value=""
+        self._loadModelString.value=""
 
 
     def __loadStringModel(self):
@@ -103,56 +101,25 @@ class classifiersWindow(BaseWidget):
             
             tempDict=data[0]
             X=tempDict['type']
-        self.parent._showClassifierParams(X)
-
-
-    #def __confiUpdate(self):
-    #    left_text = self._config.value.partition("!")[0]
-    #    self._listaClasi.value=left_text    
+        self.parent._showClassifierParams(X) 
 
     def _showSettings(self):
         self.parent._showClassifierParams(self._listaClasi.value)
 
     def __loadFile(self):
-        """
-        df = pd.read_csv(self._loadFile.value, header = 0)
-        
-        original_headers = list(df.columns.values)
-
-        numeric_headers = list(df.columns.values)
-
-        numpy_array = df.to_numpy
-
-        shape=df.shape
-
-        X= df._get_numeric_data().values.tolist()
-
-        X=df.iloc[0,3].tolist()
-
-        y, extra= pd.factorize(df[original_headers[shape[1]-1]].values)
-
-        datos=[]
-        clase=[]
-        dat2=[]
-        for i in range(shape[1]-2):
-            dat2.append(df[original_headers[i]].values)
-        #clase.append(df[original_headers[shape[1]-1]].values)
-        clase, extra= pd.factorize(df[original_headers[shape[1]-1]].values)           
-        datos.append(dat2)
-        """
 
         from os.path import exists
         import errorManager
         import json
         if(self._loadFile.value!=''):
             if(self._loadFile.value.endswith('.csv') or self._loadFile.value.endswith('.arff')):
-                if(exists(self._loadFile.value)):
+                #if(exists(self._loadFile.value)):
                     self.parent.fileName=self._loadFile.value
                     #self._loadModel.show() 
                     self._loadModelString.show()
                     self._loadModelStringAction.show()
-                else:
-                    errorManager.error(self, "File doesn't exist", None)
+                #else:
+                    #errorManager.error(self, "File doesn't exist", None)
             else:
                 errorManager.error(self, "Error reading the model file", None)
                 #self._loadModel.value=""

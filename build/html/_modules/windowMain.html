@@ -1,0 +1,219 @@
+
+<!DOCTYPE html>
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>windowMain &#8212; documentación de Interfaz gráfica para librería sklearn - </title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Código fuente para windowMain</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">asyncio.windows_events</span> <span class="kn">import</span> <span class="n">NULL</span>
+<span class="kn">from</span> <span class="nn">windowHistory</span> <span class="kn">import</span> <span class="n">historyWindow</span>
+<span class="kn">from</span> <span class="nn">windowClassifiers</span> <span class="kn">import</span> <span class="n">classifiersWindow</span>
+<span class="kn">from</span> <span class="nn">imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">settings</span>
+<span class="kn">from</span> <span class="nn">confapp</span> <span class="kn">import</span> <span class="n">conf</span><span class="p">;</span>
+<span class="kn">from</span> <span class="nn">windowSettings</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="n">conf</span><span class="o">+=</span><span class="n">settings</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">windowSettings</span> <span class="kn">import</span> <span class="n">settingsWindow</span>
+<span class="kn">from</span> <span class="nn">classifiers.sequentialModel</span> <span class="kn">import</span> <span class="n">sequentialModel</span>
+<span class="kn">from</span> <span class="nn">classifiers.functionalModel</span> <span class="kn">import</span> <span class="n">functionalModel</span>
+<span class="kn">from</span> <span class="nn">classifiers.sklearnBase</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="c1">#constructor del basewidget menu principal</span>
+<div class="viewcode-block" id="mainWindow"><a class="viewcode-back" href="../windowMain.html#windowMain.mainWindow">[documentos]</a><span class="k">class</span> <span class="nc">mainWindow</span><span class="p">(</span><span class="n">BaseWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; inits the main window</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">mainWindow</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="s1">&#39;Prueba grafica&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">800</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">600</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fileName</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>    <span class="o">=</span><span class="n">ControlTextArea</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">scrollbar</span><span class="o">=</span><span class="kc">True</span>
+   
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_code</span><span class="o">=</span><span class="n">ControlDockWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_code</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_botonCodigo</span><span class="o">=</span> <span class="n">ControlButton</span><span class="p">(</span><span class="s1">&#39;Save as txt&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_botonCodigo</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_saveOutput</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_classifierParams</span><span class="o">=</span><span class="n">ControlEmptyWidget</span><span class="p">()</span>
+ 
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_graph</span> <span class="o">=</span> <span class="n">ControlMatplotlib</span><span class="p">()</span>
+
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_miniV</span><span class="o">=</span><span class="n">ControlDockWidget</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s1">&#39;top&#39;</span><span class="p">)</span>
+        <span class="n">variable</span><span class="o">=</span><span class="n">classifiersWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">variable</span><span class="o">.</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_miniV</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">variable</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ajustesEjecucion</span><span class="o">=</span><span class="n">ControlDockWidget</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listaAnteriores</span><span class="o">=</span><span class="n">ControlDockWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listaAnteriores</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">historyWindow</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nameSaveFile</span><span class="o">=</span><span class="n">ControlText</span><span class="p">(</span><span class="s1">&#39;Save file name&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modelBoolean</span><span class="o">=</span><span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_formset</span><span class="o">=</span><span class="p">[</span>
+            <span class="p">{</span>
+            <span class="s1">&#39;Carga de datos&#39;</span><span class="p">:[</span><span class="s1">&#39;_classifierParams&#39;</span><span class="p">],</span>
+            
+            <span class="s1">&#39;Clasificador&#39;</span><span class="p">:[</span><span class="s1">&#39;_output&#39;</span><span class="p">,(</span><span class="s1">&#39;_nameSaveFile&#39;</span><span class="p">,</span><span class="s1">&#39;_botonCodigo&#39;</span><span class="p">)]</span>
+            <span class="p">}</span>
+            <span class="p">]</span>
+        
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_listaConfig</span><span class="o">=</span><span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_modelConfig</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_saveOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; guarda el output</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">f</span><span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_nameSaveFile</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="s2">&quot;.txt&quot;</span><span class="p">,</span><span class="s2">&quot;w+&quot;</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">_showClassifierParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; inicializa la ventaja de ajustes</span>
+<span class="sd">        </span>
+<span class="sd">        :param X: clasificador seleccionado</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+        <span class="kn">import</span> <span class="nn">errorManager</span>
+        <span class="c1">#exists(self.fileName) and</span>
+        <span class="k">if</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileName</span><span class="o">!=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">X</span><span class="o">==</span><span class="s1">&#39;Sequential Model&#39;</span><span class="p">:</span>
+                <span class="n">prueba</span><span class="o">=</span><span class="n">sequentialModel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">=</span><span class="n">settingsWindow</span><span class="p">(</span><span class="s2">&quot;KERAS&quot;</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">.</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ajustesEjecucion</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">ajustesVentana</span>
+
+            <span class="k">elif</span> <span class="n">X</span><span class="o">==</span><span class="s1">&#39;Functional Model&#39;</span><span class="p">:</span>
+                <span class="n">prueba</span><span class="o">=</span><span class="n">functionalModel</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">=</span><span class="n">settingsWindow</span><span class="p">(</span><span class="s2">&quot;KERAS&quot;</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">.</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ajustesEjecucion</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">ajustesVentana</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">prueba</span><span class="o">=</span><span class="n">sklearnBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">=</span><span class="n">settingsWindow</span><span class="p">(</span><span class="s2">&quot;SKLEARN&quot;</span><span class="p">)</span>
+                <span class="n">ajustesVentana</span><span class="o">.</span><span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ajustesEjecucion</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">ajustesVentana</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_classifierParams</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">prueba</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_classifierParams</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">errorManager</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;File doesn&#39;t exist&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            
+    
+    <span class="k">def</span> <span class="nf">_updateConfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">variable</span><span class="o">.</span><span class="n">_config</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">c</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Interfaz gráfica para librería sklearn</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navegación</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">app</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Código de módulo</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Búsqueda rápida</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Ir a" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Imanol Lavín.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

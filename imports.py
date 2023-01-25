@@ -32,7 +32,6 @@ from sklearn.base import BaseEstimator
 import pandas as pd
 from windowMain import *
 import matplotlib.pyplot as plt
-from globals import *
 from scipy import rand
 
 
@@ -50,6 +49,8 @@ from PyQt5.QtGui import QDrag, QPixmap
 from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
 
 import errorManager
+
+from scipy.io import arff
 
 
 #https://pyforms.readthedocs.io/en/v3.0/api-documentation/basewidget/

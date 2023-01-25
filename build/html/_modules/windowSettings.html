@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>windowSettings &#8212; documentación de Interfaz gráfica para librería sklearn - </title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="Índice" href="../genindex.html" />
+    <link rel="search" title="Búsqueda" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Código fuente para windowSettings</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">imports</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">svm</span><span class="p">,</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">metrics</span>
+<span class="kn">from</span> <span class="nn">sklearn.model_selection</span> <span class="kn">import</span> <span class="n">cross_val_score</span>
+
+<div class="viewcode-block" id="settingsWindow"><a class="viewcode-back" href="../windowSettings.html#windowSettings.settingsWindow">[documentos]</a><span class="k">class</span> <span class="nc">settingsWindow</span><span class="p">(</span><span class="n">BaseWidget</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+        <span class="n">BaseWidget</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s1">&#39;Settings&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">=</span><span class="nb">type</span>
+        <span class="c1">#print(type)</span>
+        <span class="c1">#https://medium.com/@svanillasun/how-to-deal-with-cross-validation-based-on-knn-algorithm-compute-auc-based-on-naive-bayes-ff4b8284cff4</span>
+        <span class="c1">#self._titulo.add_popup_menu_option(&#39;option 0&#39;, function_action=self._help)</span>
+
+
+    <span class="c1">#TEST OPTIONS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_testOptionsCombo</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_testOptionsCombo</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;Cross-validation&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_testOptionsCombo</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;Percentage split&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_testOptionsCombo</span><span class="o">.</span><span class="n">changed_event</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__testOptionsChanged</span>
+
+                <span class="c1">#CROSS VALIDATION</span>
+                <span class="c1">#StratifiedKFold</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldNSplits</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Number of folds&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldNSplits</span><span class="o">.</span><span class="n">min</span><span class="o">=</span><span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldNSplits</span><span class="o">.</span><span class="n">decimals</span><span class="o">=</span><span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldShuffle</span><span class="o">=</span><span class="n">ControlCheckBox</span><span class="p">(</span><span class="s1">&#39;Shuffle&#39;</span><span class="p">)</span>
+
+
+                <span class="c1">#train_test_split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Train test split&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">decimals</span><span class="o">=</span><span class="mi">3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">min</span><span class="o">=</span><span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">max</span><span class="o">=</span><span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mf">0.25</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_random_state</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Random state&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_random_state</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_shuffle</span><span class="o">=</span><span class="n">ControlCheckBox</span><span class="p">(</span><span class="s1">&#39;Shuffle train test split&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sk_shuffle</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>    
+            
+        <span class="c1">#SKLEARN</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s2">&quot;SKLEARN&quot;</span><span class="p">):</span>
+            <span class="c1">#cross validation</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">(</span><span class="s1">&#39;CV&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;Integer&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;Shuffle Split&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv</span><span class="o">.</span><span class="n">changed_event</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__cv_Changed</span>      
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_Integer</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;cv Integer&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_Integer</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mi">2</span>
+            <span class="c1">#   shuffle cross validation</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_n_splits</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Shuffle n splits&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_n_splits</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_n_splits</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mi">10</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Shuffle test size&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">decimals</span><span class="o">=</span><span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">min</span><span class="o">=</span><span class="mf">0.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">max</span><span class="o">=</span><span class="mf">1.0</span>
+            <span class="c1">#self._shuffle_train_size=ControlNumber(&#39;Shuffle train size&#39;)</span>
+            <span class="c1">#self._shuffle_train_size.hide()</span>
+            <span class="c1">#self._shuffle_train_size.decimals=3</span>
+            <span class="c1">#self._shuffle_train_size.min=0.0</span>
+            <span class="c1">#self._shuffle_train_size.max=1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_random_state</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Shuffle random state&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_random_state</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="c1">#   scoring cross</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_scoring</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">(</span><span class="s1">&#39;SK learn scoring&#39;</span><span class="p">)</span>
+            <span class="n">listaScores</span><span class="o">=</span><span class="n">metrics</span><span class="o">.</span><span class="n">get_scorer_names</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">listaScores</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cv_scoring</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+
+            
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">formset</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s1">&#39;h3:test options&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_testOptionsCombo&#39;</span><span class="p">,</span><span class="s1">&#39;_StratifiedKFoldNSplits&#39;</span><span class="p">,</span> <span class="s1">&#39;_StratifiedKFoldShuffle&#39;</span><span class="p">,</span> <span class="s1">&#39;_sk_train_test_split_test_size&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_sk_random_state&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_sk_shuffle&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;h3:cross validation&#39;</span><span class="p">,</span> 
+            <span class="s1">&#39;_cv&#39;</span><span class="p">,</span><span class="s1">&#39;_cv_Integer&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_shuffle_n_splits&#39;</span><span class="p">,</span> <span class="s1">&#39;_shuffle_test_size&#39;</span><span class="p">,</span><span class="s1">&#39;_shuffle_random_state&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;h3:scoring cross&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_cv_scoring&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span>
+            
+            <span class="p">]</span>   
+
+        <span class="c1">#SEQUENTIAL</span>
+        <span class="c1">#compile</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#train_test_split</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Train test split&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">decimals</span><span class="o">=</span><span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">min</span><span class="o">=</span><span class="mf">0.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">max</span><span class="o">=</span><span class="mf">1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mf">0.25</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_random_state</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Random state&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_shuffle</span><span class="o">=</span><span class="n">ControlCheckBox</span><span class="p">(</span><span class="s1">&#39;Shuffle train test split&#39;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_optimizers</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">(</span><span class="s1">&#39;Compile optimizers&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_optimizers</span><span class="o">.</span><span class="n">hide</span>
+            <span class="n">optiList</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Adadelta&quot;</span><span class="p">,</span> <span class="s2">&quot;Adagrad&quot;</span><span class="p">,</span> <span class="s2">&quot;Adam&quot;</span><span class="p">,</span> <span class="s2">&quot;Adamax&quot;</span><span class="p">,</span> <span class="s2">&quot;FTRL&quot;</span><span class="p">,</span> <span class="s2">&quot;Nadam&quot;</span><span class="p">,</span> <span class="s2">&quot;Optimizer&quot;</span><span class="p">,</span> <span class="s2">&quot;RMSprop&quot;</span><span class="p">,</span> <span class="s2">&quot;SGB&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">optiList</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_seq_optimizers</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_optimizers</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;RMSprop&quot;</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_loss</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">(</span><span class="s1">&#39;Compile loss&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_loss</span><span class="o">.</span><span class="n">hide</span>
+            <span class="n">lossList</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;BinaryCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;BinaryFocalCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;CategoricalCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;CategoricalHinge&quot;</span><span class="p">,</span> <span class="s2">&quot;CosineSimilarity&quot;</span><span class="p">,</span> <span class="s2">&quot;Hinge&quot;</span><span class="p">,</span> <span class="s2">&quot;Hunge&quot;</span><span class="p">,</span> <span class="s2">&quot;KLDivergence&quot;</span><span class="p">,</span> <span class="s2">&quot;LogCosh&quot;</span><span class="p">,</span> <span class="s2">&quot;Loss&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanAbsoluteError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanAbsolutePercentageError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanSquaredError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanSquaredLogarithmicError&quot;</span><span class="p">,</span> <span class="s2">&quot;Poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;Reduction&quot;</span><span class="p">,</span> <span class="s2">&quot;SparseCategoricalCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;SquaredHinge&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lossList</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_seq_loss</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_metrics</span><span class="o">=</span><span class="n">ControlCheckBoxList</span><span class="p">(</span><span class="s1">&#39;Compile metrics&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_metrics</span><span class="o">.</span><span class="n">hide</span>
+            <span class="n">metricList</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;AUC&quot;</span><span class="p">,</span> <span class="s2">&quot;Accuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;BinaryAccuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;BinaryCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;BinaryIoU&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;CategoricalAccuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;CategoricalCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;CategoricalHinge&quot;</span><span class="p">,</span> <span class="s2">&quot;CosineSimilarity&quot;</span><span class="p">,</span> <span class="s2">&quot;FalseNegatives&quot;</span><span class="p">,</span> <span class="s2">&quot;FalsePositives&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;Hinge&quot;</span><span class="p">,</span> <span class="s2">&quot;IoU&quot;</span><span class="p">,</span> <span class="s2">&quot;KLDivergence&quot;</span><span class="p">,</span> <span class="s2">&quot;LogCoshError&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;Mean&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanAbsoluteError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanAbsolutePercentageError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanIoU&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanMetricWrapper&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanRelativeError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanSquaredError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanSquaredLogarithmicError&quot;</span><span class="p">,</span> <span class="s2">&quot;MeanTensor&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;Metric&quot;</span><span class="p">,</span> <span class="s2">&quot;OneHotIoU&quot;</span><span class="p">,</span> <span class="s2">&quot;OneHotMeanIoU&quot;</span><span class="p">,</span> <span class="s2">&quot;Poisson&quot;</span><span class="p">,</span> <span class="s2">&quot;Precision&quot;</span><span class="p">,</span> <span class="s2">&quot;PrecisionAtRecall&quot;</span><span class="p">,</span> <span class="s2">&quot;Recall&quot;</span><span class="p">,</span> <span class="s2">&quot;RecallAtPrecision&quot;</span><span class="p">,</span> <span class="s2">&quot;RootMeanSquaredError&quot;</span><span class="p">,</span>     
+            <span class="s2">&quot;SensitivityAtSpecificity&quot;</span><span class="p">,</span> <span class="s2">&quot;SparseCategoricalAccuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;SparseCategoricalCrossentropy&quot;</span><span class="p">,</span> <span class="s2">&quot;SparseTopKCategoricalAccuracy&quot;</span><span class="p">,</span> <span class="s2">&quot;SpecificityAtSensitivity&quot;</span><span class="p">,</span> 
+            <span class="s2">&quot;SquaredHinge&quot;</span><span class="p">,</span> <span class="s2">&quot;Sum&quot;</span><span class="p">,</span> <span class="s2">&quot;TopKCategoricalAccuracy&quot;</span><span class="p">,</span>    <span class="s2">&quot;TrueNegatives&quot;</span><span class="p">,</span> <span class="s2">&quot;TruePositives&quot;</span><span class="p">]</span>
+
+            <span class="n">listaMetrics</span><span class="o">=</span><span class="p">[]</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">metricList</span><span class="p">:</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">x</span><span class="o">==</span><span class="s2">&quot;Accuracy&quot;</span><span class="p">):</span>
+                    <span class="n">listaMetrics</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="kc">True</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">listaMetrics</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="kc">False</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_metrics</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="n">listaMetrics</span>
+      
+            <span class="bp">self</span><span class="o">.</span><span class="n">_seq_compile_steps_per_execution</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Compile steps per execution&#39;</span><span class="p">)</span>
+
+            <span class="c1">#fit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_batch_size</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Fit batch size&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_batch_size</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mi">32</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_epochs</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Fit epochs&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_epochs</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mi">20</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_verbose</span><span class="o">=</span><span class="n">ControlCombo</span><span class="p">(</span><span class="s1">&#39;Verbose&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_verbose</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_verbose</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_verbose</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_verbose</span><span class="o">.</span><span class="n">add_item</span><span class="p">(</span><span class="s1">&#39;2&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_validation_split</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Fit validation split&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_validation_split</span><span class="o">.</span><span class="n">value</span><span class="o">=</span><span class="mf">0.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_validation_split</span><span class="o">.</span><span class="n">min</span><span class="o">=</span><span class="mf">0.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_validation_split</span><span class="o">.</span><span class="n">decimals</span><span class="o">=</span><span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_validation_split</span><span class="o">.</span><span class="n">max</span><span class="o">=</span><span class="mf">1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fit_initial_epoch</span><span class="o">=</span><span class="n">ControlNumber</span><span class="p">(</span><span class="s1">&#39;Initial epoch&#39;</span><span class="p">)</span>
+
+            
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">formset</span> <span class="o">=</span> <span class="p">[</span>
+             <span class="s1">&#39;h3:test options&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_testOptionsCombo&#39;</span><span class="p">,</span><span class="s1">&#39;_StratifiedKFoldNSplits&#39;</span><span class="p">,</span> <span class="s1">&#39;_StratifiedKFoldShuffle&#39;</span><span class="p">,</span> <span class="s1">&#39;_sk_train_test_split_test_size&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_sk_random_state&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_sk_shuffle&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;h3:compile&#39;</span><span class="p">,</span> 
+            <span class="s1">&#39;_seq_optimizers&#39;</span><span class="p">,</span><span class="s1">&#39;_seq_loss&#39;</span><span class="p">,</span><span class="s1">&#39;_seq_metrics&#39;</span><span class="p">,</span><span class="s1">&#39;_seq_compile_steps_per_execution&#39;</span><span class="p">,</span><span class="s1">&#39;=&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;h3:fit&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;_fit_batch_size&#39;</span><span class="p">,</span><span class="s1">&#39;_fit_epochs&#39;</span><span class="p">,</span><span class="s1">&#39;_fit_verbose&#39;</span><span class="p">,</span><span class="s1">&#39;_fit_validation_split&#39;</span><span class="p">,</span><span class="s1">&#39;_fit_initial_epoch&#39;</span>
+            <span class="p">]</span>   
+
+
+
+    <span class="k">def</span> <span class="nf">__cv_Changed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cv</span><span class="o">.</span><span class="n">value</span><span class="o">==</span><span class="s1">&#39;Integer&#39;</span><span class="p">):</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_Integer</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_n_splits</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="c1">#self._shuffle_train_size.hide()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_random_state</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cv_Integer</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_n_splits</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_test_size</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="c1">#self._shuffle_train_size.show()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shuffle_random_state</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+       
+    <span class="k">def</span> <span class="nf">__testOptionsChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_testOptionsCombo</span><span class="o">.</span><span class="n">value</span><span class="o">==</span><span class="s1">&#39;Cross-validation&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldNSplits</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldShuffle</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_random_state</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_shuffle</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldNSplits</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_StratifiedKFoldShuffle</span><span class="o">.</span><span class="n">hide</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_train_test_split_test_size</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_random_state</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_sk_shuffle</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+    
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Interfaz gráfica para librería sklearn</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navegación</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">app</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Código de módulo</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Búsqueda rápida</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Ir a" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2023, Imanol Lavín.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

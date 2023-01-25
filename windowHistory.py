@@ -34,7 +34,6 @@ class historyWindow(BaseWidget):
                     outfile.write(data)
 
     def __reload(self):
-        
          for (x,y) in self.listaHistorial:
             if(x==str(self._historial.get_currentrow_value()[0])): 
                 data=y
@@ -44,13 +43,14 @@ class historyWindow(BaseWidget):
 
                 try:
                     data=dict(y)
+                    tempDict=data
                     X=data['type']
                 except:
                     data=y
-                    print(y)
                     tempDict=data[0]
                     X=tempDict['type']
                 self.parent._showClassifierParams(X)
+                self.parent._miniV.value._loadModelString.value=str(tempDict)
 
 
     def __loadFromFile(self):

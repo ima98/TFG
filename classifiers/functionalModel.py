@@ -172,11 +172,16 @@ class functionalModel(BaseWidget):
 
     def __execute(self):
 
-        dataset = loadtxt(self.parent.fileName, delimiter=',')
-        
-        # split into input (X) and output (y) variables
-        X = dataset[:,0:dataset.shape[1]-1]
-        y = dataset[:,dataset.shape[1]-1]
+        import errorManager
+        try:
+            import helper
+            (X,y,dataset)=helper.getDataset(self.parent.fileName)
+
+   
+        except Exception as e: 
+            errorManager.error(self, "Error loading the csv", e)
+            return
+
 
 
 
