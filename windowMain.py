@@ -25,7 +25,6 @@ class mainWindow(BaseWidget):
         self.setMinimumWidth(800)
         self.setMinimumHeight(600)
 
-
         self.fileName=''
 
         self._output    =ControlTextArea()
@@ -39,8 +38,6 @@ class mainWindow(BaseWidget):
 
         self._classifierParams=ControlEmptyWidget()
  
-
-        self._graph = ControlMatplotlib()
 
         
         self._miniV=ControlDockWidget(side='top')

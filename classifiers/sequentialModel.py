@@ -274,7 +274,7 @@ class WindowLayerOrder(QWidget):
         super().__init__()
         self.setAcceptDrops(True)
         
-        self.blayout = QVBoxLayout()
+        self.blayout = QHBoxLayout()
         self.lista=[]
         self.father=parent
         

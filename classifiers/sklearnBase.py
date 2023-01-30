@@ -1,7 +1,6 @@
 from imports import *
 import sklearn
 import json
-from modelConfig import *
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import ShuffleSplit
 
@@ -16,15 +15,11 @@ class sklearnBase(BaseWidget):
         BaseWidget.__init__(self,'SKLEARN window')
         self.parent = father
 
-
         self.excepciones=['_parent_widget', '_mainmenu','_splitters','_tabs','_formset', '_formload','_formLoaded','_uid', '_addLayer',  '_saveModel','_generatePy']
         self.loadInputX=False
         self.loadInputY=False
 
-
-        self.topmost=True
-       
-        self.modelConfig=modelConfig(0, "sklearn")
+        self.topmost=True       
 
         self.setMinimumWidth(400)
         self.setMinimumHeight(300)
@@ -33,12 +28,7 @@ class sklearnBase(BaseWidget):
 
         self.intExcepciones=[]
 
-        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-        with open(os.path.join(__location__,sklearn+'.json')) as f:
-            self.data= json.load(f)
-
-        for key,value in self.data.items():
-            self.translate(key, value)
+        self.__loadJSONData(sklearn)
 
         self._saveModel=ControlButton('Save model')
         self._saveModel.value=self.__saveModel
@@ -50,14 +40,20 @@ class sklearnBase(BaseWidget):
         self._addLayer.value=self.__execute
 
 
-        
-
-
         if self.parent._modelConfig is not None and self.parent._modelBoolean:
             self.__loadSettings(self.parent._modelConfig)
 
         self.X_train=0
     
+
+    def __loadJSONData(self, sklearn):
+        import os
+        __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+        with open(os.path.join(__location__,sklearn+'.json')) as f:
+            self.data= json.load(f)
+
+        for key,value in self.data.items():
+            self.translate(key, value)
 
     def __updateReverse(self, confString):
         self.numNeighbors.value=int(confString[0])
@@ -91,7 +87,7 @@ class sklearnBase(BaseWidget):
             if(len(tipoJson)>2):
                 m1='self._'+s+'.min= '+str(tipoJson[1])
                 m2='self._'+s+'.max= '+str(tipoJson[2])
-                m3='self._'+s+'.value= '+str(tipoJson[1]) 
+                m3='self._'+s+'.value= '+str(tipoJson[1])
                 exec(m1)
                 exec(m2)
                 exec(m3)
@@ -113,7 +109,6 @@ class sklearnBase(BaseWidget):
                 m1='self._'+s+'.value= '+str(tipoJson[1])  
                 exec(m1) 
             
-        
         elif(tipoJson[0]=='Combo'):
             m='self._'+s+'=ControlCombo('+"'"+s+"'"+')'
             exec(m)
@@ -242,34 +237,24 @@ class sklearnBase(BaseWidget):
             #https://scikit-learn.org/stable/modules/generated/sklearn.datasets.load_iris.html
 
             #https://medium.com/dunder-data/from-pandas-to-scikit-learn-a-new-exciting-workflow-e88e2271ef62
-
-            
-        from sklearn.model_selection import train_test_split
-        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
-        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
-
-
-
         l=self.__getConfig()
         dic=dict(l)
 
-        self.parent._miniV.value._loadModelString.value=str(dic)
+        addH=l
+        addH[:0] = [('type',self.name)]
+        AddHD=dict(addH)
+        self.parent._miniV.value._loadModelString.value=json.dumps(AddHD)
 
-            
         m=dic["constructor"]
 
-        from numpy import fromstring
-
-
         if(self.loadInputX==True and self.loadInputY==True):
-
-                parts=m.partition('(')
-                newC=parts[0]+'(X_train, y_train, '+parts[2]
-                m=newC
+            parts=m.partition('(')
+            newC=parts[0]+'(X_train, y_train, '+parts[2]
+            m=newC
         elif(self.loadInputX==True and self.loadInputY==False):
-                parts=m.partition('(')
-                newC=parts[0]+'(X_train, '+parts[2]
-                m=newC
+            parts=m.partition('(')
+            newC=parts[0]+'(X_train, '+parts[2]
+            m=newC
                 
 
         result=""
@@ -278,9 +263,34 @@ class sklearnBase(BaseWidget):
 
         m2='self.modelo='+m
         exec(m2)
-
-
         self.__addToHist(l)
+
+
+            
+        from sklearn.model_selection import train_test_split, StratifiedKFold
+        if(self.parent._ajustesEjecucion.value._testOptionsCombo.value=='Cross-validation'):
+            skf=StratifiedKFold(n_splits=int(self.parent._ajustesEjecucion.value._StratifiedKFoldNSplits.value), shuffle=self.parent._ajustesEjecucion.value._StratifiedKFoldShuffle.value, random_state=None)
+            lst_accu_stratified = []
+
+            for i, (train_index, test_index) in enumerate(skf.split(X, y)): 
+                print(train_index)
+                print(test_index)
+                X_train_fold, X_test_fold = X.iloc[train_index], X.iloc[test_index] 
+                y_train_fold, y_test_fold = y.iloc[train_index], y.iloc[test_index] 
+                self.modelo.fit(X_train_fold, y_train_fold)
+                lst_accu_stratified.append(self.modelo.score(X_test_fold, y_test_fold))
+            
+            print(lst_accu_stratified)
+            return
+
+        else:
+            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+            random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+
+        from numpy import fromstring
+
+
+
 
 
             

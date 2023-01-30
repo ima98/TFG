@@ -39,8 +39,6 @@ class layer(BaseWidget):
         for key,value in self.data.items():
             self.translate(key, value)
 
-        #self._addLayer=ControlButton('add layer')
-        #self._addLayer.value=self.__addLayer
 
         
         if(len(args) > 2):
@@ -149,6 +147,8 @@ class layer(BaseWidget):
                         exec(m)  
         
 
+
+    #GENERAR MÉTODO EN EL PADRE PARA GUARDAR LAS CAPAS
 
     def __addLayer(self):
         import errorManager

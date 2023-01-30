@@ -2,6 +2,14 @@ from imports import *
 import sklearn
 import json
 from PyQt5.QtWidgets import QMessageBox
+        
+
+    
+        
+            
+
+    
+    
 
 def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
         with open('imports.py', 'r') as file:
@@ -16,12 +24,24 @@ def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
             f.write('\n')
             f.write("from keras.models import Sequential")
             f.write('\n')
-            
 
+            if(fileName.endswith(".arff")):
+                f.write("dataL = arff.loadarff("+"'"+fileName+"'"+")\n")
+                f.write('inputData = pd.DataFrame(dataL[0])\n')
+            else:
+                f.write("inputData = read_csv("+"'"+fileName+"'"+", delimiter=',', header=1)\n")
+
+            f.write('for dtype in inputData.dtypes.iteritems():\n')
+            f.write('\tif (dtype[1]=="O"):\n')
+            f.write('\t\tinputData[dtype[0]],_=pd.factorize(inputData[dtype[0]])\n')
+            f.write('y = inputData.iloc[:,inputData.shape[1]-1]\n')
+            f.write('X=inputData.iloc[:, 0:inputData.shape[1]-2]\n')
+            """
             f.write("dataset = loadtxt("+"'"+fileName+"'"+", delimiter=',')")
             f.write('\n')
             f.write("X = dataset[:,0:dataset.shape[1]-1] \n")
             f.write("y = dataset[:,dataset.shape[1]-1] \n")
+            """
             f.write("model = Sequential()")
             f.write('\n')
 
@@ -45,7 +65,7 @@ def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
            
 
             #FIT
-            f.write("model.fit(X, y, epochs=int("+str(fitList[0])+"), batch_size=int("+str(fitList[1])+"), verbose=int("+fitList[2]+"), validation_split="+fitList[3]+")")
+            f.write("model.fit(X, y, epochs=int("+str(fitList[0])+"), batch_size=int("+str(fitList[1])+"), verbose='"+str(fitList[2])+"', validation_split="+str(fitList[3])+")")
             f.write("\n")
             
             f.write("model.summary()")

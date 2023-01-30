@@ -57,30 +57,6 @@ class classifiersWindow(BaseWidget):
         
         self._ajustes.value=self._showSettings
 
-    """
-    def __loadModel(self):
-        from os.path import exists
-        import errorManager
-        import json
-        if(self._loadModel.value!=''):
-            if(self._loadModel.value.endswith('.json')):
-                if(exists(self._loadModel.value)):
-                    with open(self._loadModel.value) as json_file:
-                        data = json.load(json_file)
-                        self.parent._modelConfig=data
-                        self.parent._modelBoolean=True
-                        try:
-                            X=data['type']
-                        except:
-                            tempDict=data[0]
-                            X=tempDict['type']
-                        self.parent._showClassifierParams(X)
-                else:
-                    errorManager.error(self, "File doesn't exist", None)
-            else:
-                errorManager.error(self, "Error reading the model file", None)
-                self._loadModel.value=""
-    """
         
     def __deleteLoadedModel(self):
         self.parent._modelBoolean=False
@@ -89,6 +65,7 @@ class classifiersWindow(BaseWidget):
 
     def __loadStringModel(self):
         import json
+        print(self._loadModelString.value)
         dict=json.loads(self._loadModelString.value)
         data=dict
         self.parent._modelConfig=data

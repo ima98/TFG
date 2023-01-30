@@ -11,6 +11,7 @@ Welcome to Interfaz gráfica para librería sklearn's documentation!
    :caption: Contents:
 
    modules
+   ..classifiers/*
 
 Indices and tables
 ==================

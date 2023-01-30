@@ -1,9 +1,13 @@
-app
-===
+classifiers
+===========
 
 .. toctree::
    :maxdepth: 4
 
+   SVMsettings
+   functionalModel
+   sequentialModel
+   sklearnBase
    errorManager
    fileGenerator
    generated
@@ -18,4 +22,4 @@ app
    windowHistory
    windowMain
    windowSettings
-   classifiers/sklearnBase
+

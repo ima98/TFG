@@ -37,7 +37,6 @@ class historyWindow(BaseWidget):
          for (x,y) in self.listaHistorial:
             if(x==str(self._historial.get_currentrow_value()[0])): 
                 data=y
-                print(data)
                 self.parent._modelConfig=data
                 self.parent._modelBoolean=True
 
@@ -61,7 +60,6 @@ class historyWindow(BaseWidget):
         root.withdraw()
         file_path = filedialog.askopenfilename()
         with open(file_path) as json_file:
-            #self.parent.fileName=file_path
             data = json.load(json_file)
             self.parent._modelConfig=data
             self.parent._modelBoolean=True
