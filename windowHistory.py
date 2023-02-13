@@ -15,9 +15,9 @@ class historyWindow(BaseWidget):
         
         self._historial=ControlList()
         self._historial.readonly=True
-        self._historial.add_popup_menu_option('reload', function_action=self.__reload)
-        self._historial.add_popup_menu_option('save', function_action=self.__save)
-        self._historial.add_popup_menu_option('load from file', function_action=self.__loadFromFile)
+        self._historial.add_popup_menu_option('Reload', function_action=self.__reload)
+        self._historial.add_popup_menu_option('Save', function_action=self.__save)
+        self._historial.add_popup_menu_option('Load from file', function_action=self.__loadFromFile)
 
         now = datetime.datetime.now()
 
@@ -55,7 +55,6 @@ class historyWindow(BaseWidget):
     def __loadFromFile(self):
         import tkinter as tk
         from tkinter import filedialog
-
         root = tk.Tk()
         root.withdraw()
         file_path = filedialog.askopenfilename()

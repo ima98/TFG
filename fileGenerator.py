@@ -95,4 +95,66 @@ def fileGeneratorSKlearn(fileName,train_test_splitList, constructor):
             f.write("modelo="+constructor+"\n")
 
             f.write("modelo.fit(X_train,y_train)\n")
+
+
+
+
+def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
+    with open('imports.py', 'r') as file:
+            imports = file.read()
+            fname='generated.py'
+    with open(fname, 'w') as f:
+            f.write(imports)
+            f.write('\n')
+            f.write("from numpy import loadtxt")
+            f.write('\n')
+            f.write("import tensorflow as tf")
+            f.write('\n')
+            f.write("from keras.models import Sequential")
+            f.write('\n')
+
+            if(fileName.endswith(".arff")):
+                f.write("dataL = arff.loadarff("+"'"+fileName+"'"+")\n")
+                f.write('inputData = pd.DataFrame(dataL[0])\n')
+            else:
+                f.write("inputData = read_csv("+"'"+fileName+"'"+", delimiter=',', header=1)\n")
+
+            f.write('for dtype in inputData.dtypes.iteritems():\n')
+            f.write('\tif (dtype[1]=="O"):\n')
+            f.write('\t\tinputData[dtype[0]],_=pd.factorize(inputData[dtype[0]])\n')
+            f.write('y = inputData.iloc[:,inputData.shape[1]-1]\n')
+            f.write('X=inputData.iloc[:, 0:inputData.shape[1]-2]\n')
+            """
+            f.write("dataset = loadtxt("+"'"+fileName+"'"+", delimiter=',')")
+            f.write('\n')
+            f.write("X = dataset[:,0:dataset.shape[1]-1] \n")
+            f.write("y = dataset[:,dataset.shape[1]-1] \n")
+            """
+            f.write("model = Sequential()")
+            f.write('\n')
+
+            for x in stringList:
+                f.write(x)
+                f.write("\n")
+                f.write("model.add(layerTemp)\n")
+
+
+            #COMPILER PART
+            metrics=""
+            for index, item in enumerate(compileList[3]):
+                if index != len(compileList[3]) - 1:
+                    #print(item, 'is NOT last in the list ✅')
+                    metrics=metrics+"'"+item+"',"
+                else:
+                    #print(item, 'is last in the list ❌')
+                    metrics=metrics+"'"+item+"'"
+
+            f.write("model.compile(optimizer='"+compileList[0]+"', loss='"+compileList[1]+"', steps_per_execution=int("+str(compileList[2])+"), metrics=["+metrics+"])\n")
+           
+
+            #FIT
+            f.write("model.fit(X, y, epochs=int("+str(fitList[0])+"), batch_size=int("+str(fitList[1])+"), verbose='"+str(fitList[2])+"', validation_split="+str(fitList[3])+")")
+            f.write("\n")
             
+            f.write("model.summary()")
+            f.close()

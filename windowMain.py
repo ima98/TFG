@@ -31,10 +31,8 @@ class mainWindow(BaseWidget):
         self._output.scrollbar=True
    
 
-        self._code=ControlDockWidget()
-        self._code.hide()
-        self._botonCodigo= ControlButton('Save as txt')
-        self._botonCodigo.value=self._saveOutput
+        self._saveOutputButton= ControlButton('Save as txt')
+        self._saveOutputButton.value=self.__saveOutput
 
         self._classifierParams=ControlEmptyWidget()
  
@@ -66,7 +64,7 @@ class mainWindow(BaseWidget):
         self._listaConfig=[]
         self._modelConfig=''
 
-    def _saveOutput(self):
+    def __saveOutput(self):
         """ guarda el output
         
         """

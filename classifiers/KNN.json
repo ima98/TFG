@@ -8,3 +8,4 @@
     "n_jobs":["Integer", 1],
     "constructor":"sklearn.neighbors.KNeighborsClassifier()"
 }
+

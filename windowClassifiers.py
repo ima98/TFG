@@ -32,7 +32,7 @@ class classifiersWindow(BaseWidget):
         self._loadModelStringAction.hide()
 
         self._titulo=ControlLabel('Clasificadores')
-        self._print=ControlLabel('printeos')
+
 
         ##config quitado de momento
         #self._config=ControlFile(label="    Model")

@@ -1,6 +1,6 @@
 [
   {
-    "type": "Functional Model"
+    "type": "Sequential Model"
   },
   {
     "self._name": "prim",
@@ -14,10 +14,8 @@
     "self._activity_regularizer": "L1",
     "self._kernel_constraint": "MaxNorm",
     "self._bias_constraint": "MaxNorm",
-    "self._inputLayerSelect": null,
     "constructor": "tf.keras.layers.Dense(units= 8.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')",
-    "type": "dense",
-    "input": null
+    "type": "dense"
   },
   {
     "self._name": "seg",
@@ -31,22 +29,11 @@
     "self._activity_regularizer": "L1",
     "self._kernel_constraint": "MaxNorm",
     "self._bias_constraint": "MaxNorm",
-    "self._inputLayerSelect": "prim",
     "constructor": "tf.keras.layers.Dense(units= 8.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')",
-    "type": "dense",
-    "input": "prim"
+    "type": "dense"
   },
   {
-    "input": "list",
-    "self._name": "tercera",
-    "type": "Input from layers",
-    "list": [
-      "prim",
-      "seg"
-    ]
-  },
-  {
-    "self._name": "final",
+    "self._name": "t",
     "self._units": 1.0,
     "self._activation": "sigmoid",
     "self._use_bias": false,
@@ -57,9 +44,7 @@
     "self._activity_regularizer": "L1",
     "self._kernel_constraint": "MaxNorm",
     "self._bias_constraint": "MaxNorm",
-    "self._inputLayerSelect": "prim",
     "constructor": "tf.keras.layers.Dense(units= 1.0, activation= 'sigmoid', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')",
-    "type": "dense",
-    "input": "prim"
+    "type": "dense"
   }
 ]

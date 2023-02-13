@@ -8,13 +8,17 @@ import tensorflow as tf
 #from tensorflow.keras.losses import BinaryCrossentropy
 #from tensorflow.keras.metrics import BinaryAccuracy, FalseNegatives
 
-from classifiers.layers.orderLayers import *
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QWidget, QPushButton, QVBoxLayout, QComboBox, QCheckBox
+from PyQt5.QtCore import Qt, QMimeData
+from PyQt5.QtGui import QDrag, QPixmap
 
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
 
 
 from io import StringIO 
 import sys
-
+import json
 
 
 
@@ -92,9 +96,8 @@ class sequentialModel(BaseWidget):
                 
     def __addLayerToModel(self, l):
         self.layers.append(l)
-        self._layerCombo.add_item(l['_name'],l)
+        self._layerCombo.add_item(l['self._name'],l)
         self._layer.hide()
-        print(self.layers)
 
 
     def __deleteLayer(self):
@@ -116,8 +119,13 @@ class sequentialModel(BaseWidget):
 
     def _layer__addEditedLayer(self, dic):
         for item in self.layers:
-            if item['self._name']==dic['self._name']:
-                self.layers[self.layers.index(item)]=dic
+            print("keys de las capas en el editar \n")
+            print(item.keys())
+            try:
+                if item['self._name']==dic['self._name']:
+                    self.layers[self.layers.index(item)]=dic
+            except:
+                None
         
         self._layerEdit.hide()
         
@@ -137,7 +145,8 @@ class sequentialModel(BaseWidget):
     def __generateComboFromList(self):
         self._layerCombo.clear()
         for layerDic in self.layers:
-            #print(layerDic)
+            print("LAS PUTAS KEYS \n")
+            print(layerDic)
             #dic['self._name'],dic
             self._layerCombo.add_item(layerDic['self._name'], layerDic)
         #print(self._layerCombo.items)
@@ -170,15 +179,25 @@ class sequentialModel(BaseWidget):
         return l2
 
     def __saveModel(self):
-        temp=self.layers
-        typeTemp=[("type", "Sequential Model")]
-        head=dict(typeTemp)
-        temp.insert(0, head)
-        data= json.dumps(temp, indent=2)
-        with open("sample.json", "w") as outfile:
-            outfile.write(data)
+        for layerDic in self.layers:
+            if(layerDic['type']=='Input from layers'):
+                lisL=str(str(layerDic['list']))
+                lisL=lisL.replace("'","")
+                m=layerDic['self._name']+" = tf.keras.layers.Add()("+lisL+")"
+                print(m)
+                print(layerDic['list'])
+            else:
+                cons=layerDic['constructor']
+                tempName=str(layerDic['self._name'])
+                tempInput=layerDic['input']
+                if tempInput==None:
+                    m=str(tempName)+'='+cons+'(inputs)'
+                else:
+                    m=str(tempName)+'='+cons+'('+tempInput+')'
+            exec(m)
 
-        #model.save('saved_model/my_model')
+        exec('self.model=keras.Model(inputs,'+tempName+')')
+        self.model.save('my_model.h5')
         
 
     def __loadSettings(self, lista):
@@ -190,7 +209,6 @@ class sequentialModel(BaseWidget):
 
 
     def __execute(self):
-
         import errorManager
         try:
             import helper
@@ -202,20 +220,18 @@ class sequentialModel(BaseWidget):
             return
 
 
-        from sklearn.model_selection import train_test_split
-        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
-        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
 
         
         model = Sequential()
 
         for layerDic in self.layers:
+            print("keys de las capas en el modelo \n")
+            print(layerDic.keys())
             cons=layerDic['constructor']
             m='layerTemp='+cons
             exec(m)
             exec("model.add(layerTemp)")
-
-        
+      
 
         import datetime
         temp=self.layers
@@ -226,9 +242,12 @@ class sequentialModel(BaseWidget):
         self.parent._listaAnteriores.value.listaHistorial.append((("Sequential"+'-'+str(now.hour)+'-'+str(now.minute)+'-'+str(now.second)), temp))
         self.parent._listaAnteriores.value.__update()
 
+        print(temp)
+
         self.parent._miniV.value._loadModelString.value=str(temp)
-        
-        import errorManager
+
+        sys.stdout = buffer = StringIO()
+
         try:
             listaMetrics=self.__getListaMetrics()
 
@@ -236,34 +255,87 @@ class sequentialModel(BaseWidget):
             metrics=listaMetrics)
         except Exception as e:
             errorManager.error(self, "Error during model compile", e)
+            return
 
 
-
-        #FIT
-        try:
-            model.fit(X_train,y_train, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
-            validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
-
-        except Exception as e:
-            errorManager.error(self, "Error during model fit", e)
-
-        sys.stdout = buffer = StringIO()
-
-        print(self.parent._ajustesEjecucion.value._fit_epochs.value)
-
-      
-        model.summary()
         
-        try:
-             _, accuracy = model.evaluate(X_test, y_test, y)
-             print('Accuracy: %.2f' % (accuracy*100))
+        from sklearn.model_selection import train_test_split, StratifiedKFold
+        if(self.parent._ajustesEjecucion.value._testOptionsCombo.value=='Cross-validation'):
+            skf=StratifiedKFold(n_splits=int(self.parent._ajustesEjecucion.value._StratifiedKFoldNSplits.value), shuffle=self.parent._ajustesEjecucion.value._StratifiedKFoldShuffle.value, random_state=None)
+            lst_evaluate_stratified = []
 
-        except Exception as e:
-            errorManager.error(self, "Error during model evaluation", e)   
 
-        result=buffer.getvalue()
+            for i, (train_index, test_index) in enumerate(skf.split(X, y)): 
+                X_train_fold, X_test_fold = X.iloc[train_index], X.iloc[test_index] 
+                y_train_fold, y_test_fold = y.iloc[train_index], y.iloc[test_index]
 
-        self.parent._output.value=result
+
+                try:
+                    model.fit(X_train_fold,y_train_fold, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+                    validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
+
+                except Exception as e:
+                    errorManager.error(self, "Error during model fit", e)
+                    return
+
+                
+            
+                try:
+                    _, accuracy = model.evaluate(X_test_fold, y_test_fold)
+                    lst_evaluate_stratified.append(accuracy)
+                    #print('Accuracy: %.2f' % (accuracy*100))
+
+                except Exception as e:
+                    errorManager.error(self, "Error during model evaluation", e) 
+            model.summary()
+
+            for x in lst_evaluate_stratified:
+                print('Accuracy: %.2f' % (x*100))
+
+            result=buffer.getvalue()
+
+            self.parent._output.value=result
+                
+        else:
+
+            X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+            random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+            
+            try:
+                listaMetrics=self.__getListaMetrics()
+
+                model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
+                metrics=listaMetrics)
+            except Exception as e:
+                errorManager.error(self, "Error during model compile", e)
+
+
+
+            #FIT
+            try:
+                model.fit(X_train,y_train, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+                validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
+
+            except Exception as e:
+                errorManager.error(self, "Error during model fit", e)
+
+            
+
+            print(self.parent._ajustesEjecucion.value._fit_epochs.value)
+
+        
+            model.summary()
+            
+            try:
+                _, accuracy = model.evaluate(X_test, y_test)
+                print('Accuracy: %.2f' % (accuracy*100))
+
+            except Exception as e:
+                errorManager.error(self, "Error during model evaluation", e)   
+
+            result=buffer.getvalue()
+
+            self.parent._output.value=result
         
 
         

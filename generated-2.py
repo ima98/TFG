@@ -27,6 +27,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.pipeline import make_pipeline
 from sklearn.svm import SVC
 from sklearn.base import BaseEstimator
+import tensorflow as tf
+from tensorflow import keras
 
 
 import pandas as pd
@@ -34,7 +36,8 @@ from windowMain import *
 import matplotlib.pyplot as plt
 from scipy import rand
 
-
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
 
 
 
@@ -64,13 +67,17 @@ for dtype in inputData.dtypes.iteritems():
 		inputData[dtype[0]],_=pd.factorize(inputData[dtype[0]])
 y = inputData.iloc[:,inputData.shape[1]-1]
 X=inputData.iloc[:, 0:inputData.shape[1]-2]
-model = Sequential()
-layerTemp=tf.keras.layers.Dense(units= 32.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')
-model.add(layerTemp)
-layerTemp=tf.keras.layers.Dense(units= 8.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')
-model.add(layerTemp)
-layerTemp=tf.keras.layers.Dense(units= 1.0, activation= 'sigmoid', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')
-model.add(layerTemp)
-model.compile(optimizer='RMSprop', loss='BinaryCrossentropy', steps_per_execution=int(0), metrics=['Accuracy'])
-model.fit(X, y, epochs=int(20), batch_size=int(32), verbose='auto', validation_split=0.0)
+
+
+inputs = keras.Input(shape=(inputData.shape[1],))
+
+prim=tf.keras.layers.Dense(units= 12.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')(inputs)
+seg=tf.keras.layers.Dense(units= 12.0, activation= 'relu', use_bias= False, kernel_initializer= 'RandomNormal', bias_initializer= 'RandomNormal', kernel_regularizer= 'L1', bias_regularizer= 'L1', activity_regularizer= 'L1', kernel_constraint= 'MaxNorm', bias_constraint= 'MaxNorm')(prim)
+ter = tf.keras.layers.Add()([prim, seg])
+cuart=tf.keras.layers.Activation(activation= 'relu')(ter)
+
+model=keras.Model(inputs,cuart)
+
+#model.compile(optimizer='RMSprop', loss='BinaryCrossentropy', steps_per_execution=int(0), metrics=['Accuracy'])
+#model.fit(X, y, epochs=int(20), batch_size=int(32), verbose='auto', validation_split=0.0)
 model.summary()

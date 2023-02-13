@@ -1,0 +1,11 @@
+{
+  "type": "KNN",
+  "self._n_neighbors": 15,
+  "self._weights": "uniform",
+  "self._algorithm": "auto",
+  "self._leaf_size": 32,
+  "self._p": 4,
+  "self._metric": "cityblock",
+  "self._n_jobs": 1,
+  "constructor": "sklearn.neighbors.KNeighborsClassifier(n_neighbors= 15, weights= 'uniform', algorithm= 'auto', leaf_size= 32, p= 4, metric= 'cityblock', n_jobs= 1)"
+}

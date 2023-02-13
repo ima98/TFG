@@ -3,8 +3,10 @@ from classifiers.layers.layer import layer
 from classifiers.layers.layerFunctional import layerFunctional
 from numpy import loadtxt
 import tensorflow as tf
-
-from classifiers.layers.orderLayers import *
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+import tensorflow as tf
+from tensorflow import keras
 
 from io import StringIO 
 import sys
@@ -131,9 +133,18 @@ class functionalModel(BaseWidget):
         toAdd=""
         stringList=[]
         for layerDic in self.layers:
+            print(layerDic)
+            if(layerDic['type']=='Input from layers'):
+                m="layerDic['self._name'] = layers.add(layerDic['input'])"
+            else:
                 cons=layerDic['constructor']
-                m='layerTemp='+cons
-                stringList.append(m)
+                tempName=str(layerDic['self._name'])
+                tempInput=layerDic['input']
+                if tempInput==None:
+                    m=str(tempName)+'='+cons+'(inputs)'
+                else:
+                    m=str(tempName)+'='+cons+'('+tempInput+')'
+            print(m)
 
         listaMetrics=self.__getListaMetrics()
         compileList=[self.parent._ajustesEjecucion.value._seq_optimizers.value, self.parent._ajustesEjecucion.value._seq_loss.value, int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
@@ -142,7 +153,7 @@ class functionalModel(BaseWidget):
         fitList=[int(self.parent._ajustesEjecucion.value._fit_epochs.value), int(self.parent._ajustesEjecucion.value._fit_batch_size.value), self.parent._ajustesEjecucion.value._fit_verbose.value, 
             self.parent._ajustesEjecucion.value._fit_validation_split.value]
 
-        fileGenerator.fileGeneratorSequentialModel(stringList, self.parent.fileName, compileList, fitList)
+        #fileGenerator.fileGeneratorSequentialModel(stringList, self.parent.fileName, compileList, fitList)
 
 
     def __getListaMetrics(self):
@@ -154,13 +165,16 @@ class functionalModel(BaseWidget):
         return l2
 
     def __saveModel(self):
-        temp=self.layers
-        typeTemp=[("type", "Functional Model")]
-        head=dict(typeTemp)
-        temp.insert(0, head)
-        data= json.dumps(temp, indent=2)
-        with open("sample.json", "w") as outfile:
-            outfile.write(data)
+        model = Sequential()
+
+        for layerDic in self.layers:
+            print("keys de las capas en el modelo \n")
+            print(layerDic.keys())
+            cons=layerDic['constructor']
+            m='layerTemp='+cons
+            exec(m)
+            exec("model.add(layerTemp)")
+        model.save('my_model.h5')
 
     def __loadSettings(self, lista):
         lista.pop(0)
@@ -175,7 +189,7 @@ class functionalModel(BaseWidget):
         import errorManager
         try:
             import helper
-            (X,y,dataset)=helper.getDataset(self.parent.fileName)
+            (X,y,dataset)=helper.getDataSet(self.parent.fileName)
 
    
         except Exception as e: 
@@ -183,7 +197,7 @@ class functionalModel(BaseWidget):
             return
 
 
-
+        sys.stdout = buffer = StringIO()
 
         from sklearn.model_selection import train_test_split
         X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
@@ -197,28 +211,30 @@ class functionalModel(BaseWidget):
         lastLayer=''
 
         for layerDic in self.layers:
-            print(layerDic)
-            cons=layerDic['constructor']
-            tempName=layerDic['self._name']
-            tempInput=layerDic['input']
-            if tempInput==None:
-                m=tempName+'='+cons+'(inputs)'
+            if(layerDic['type']=='Input from layers'):
+                lisL=str(str(layerDic['list']))
+                lisL=lisL.replace("'","")
+                m=layerDic['self._name']+" = tf.keras.layers.Add()("+lisL+")"
+                print(m)
+                print(layerDic['list'])
             else:
-                m=tempName+'='+cons+'('+tempInput+')'
-
-
+                cons=layerDic['constructor']
+                tempName=str(layerDic['self._name'])
+                tempInput=layerDic['input']
+                if tempInput==None:
+                    m=str(tempName)+'='+cons+'(inputs)'
+                else:
+                    m=str(tempName)+'='+cons+'('+tempInput+')'
             exec(m)
 
-
-        model=Sequential()
-
-        exec('model=keras.Model(inputs,'+tempName+')')
+        exec('self.model=keras.Model(inputs,'+tempName+')')
         
+
         import errorManager
         try:
             listaMetrics=self.__getListaMetrics()
 
-            model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
+            self.model.compile(optimizer=self.parent._ajustesEjecucion.value._seq_optimizers.value, loss=self.parent._ajustesEjecucion.value._seq_loss.value, steps_per_execution=int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
             metrics=listaMetrics)
         except Exception as e:
             errorManager.error(self, "Error during model compile", e)
@@ -227,25 +243,27 @@ class functionalModel(BaseWidget):
 
         #FIT
         try:
-            model.fit(X_train,y_train, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+            self.model.fit(X_train,y_train, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
             validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
 
         except Exception as e:
             errorManager.error(self, "Error during model fit", e)
 
-        sys.stdout = buffer = StringIO()
+        
 
         print(self.parent._ajustesEjecucion.value._fit_epochs.value)
 
       
-        model.summary()
+        
         
         try:
-             _, accuracy = model.evaluate(X_test, y_test, y)
+             _, accuracy = self.model.evaluate(X_test, y_test, y)
              print('Accuracy: %.2f' % (accuracy*100))
 
         except Exception as e:
             errorManager.error(self, "Error during model evaluation", e)   
+
+        self.model.summary()
 
         result=buffer.getvalue()
 
