@@ -133,9 +133,10 @@ class functionalModel(BaseWidget):
         toAdd=""
         stringList=[]
         for layerDic in self.layers:
-            print(layerDic)
             if(layerDic['type']=='Input from layers'):
-                m="layerDic['self._name'] = layers.add(layerDic['input'])"
+                lisL=str(str(layerDic['list']))
+                lisL=lisL.replace("'","")
+                m=layerDic['self._name']+" = tf.keras.layers.Add()("+lisL+")"
             else:
                 cons=layerDic['constructor']
                 tempName=str(layerDic['self._name'])
@@ -144,7 +145,9 @@ class functionalModel(BaseWidget):
                     m=str(tempName)+'='+cons+'(inputs)'
                 else:
                     m=str(tempName)+'='+cons+'('+tempInput+')'
-            print(m)
+            stringList.append(m)
+
+        exec('self.model=keras.Model(inputs,'+tempName+')')
 
         listaMetrics=self.__getListaMetrics()
         compileList=[self.parent._ajustesEjecucion.value._seq_optimizers.value, self.parent._ajustesEjecucion.value._seq_loss.value, int(self.parent._ajustesEjecucion.value._seq_compile_steps_per_execution.value),
@@ -153,7 +156,7 @@ class functionalModel(BaseWidget):
         fitList=[int(self.parent._ajustesEjecucion.value._fit_epochs.value), int(self.parent._ajustesEjecucion.value._fit_batch_size.value), self.parent._ajustesEjecucion.value._fit_verbose.value, 
             self.parent._ajustesEjecucion.value._fit_validation_split.value]
 
-        #fileGenerator.fileGeneratorSequentialModel(stringList, self.parent.fileName, compileList, fitList)
+        fileGenerator.fileGeneratorFuncitonalModel(stringList, self.parent.fileName, compileList, fitList)
 
 
     def __getListaMetrics(self):
@@ -196,14 +199,6 @@ class functionalModel(BaseWidget):
             errorManager.error(self, "Error loading the csv", e)
             return
 
-
-        sys.stdout = buffer = StringIO()
-
-        from sklearn.model_selection import train_test_split
-        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
-        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
-
-        
         inputs = keras.Input(shape=(dataset.shape[1],))
 
         tempName=''
@@ -228,6 +223,49 @@ class functionalModel(BaseWidget):
             exec(m)
 
         exec('self.model=keras.Model(inputs,'+tempName+')')
+
+
+        sys.stdout = buffer = StringIO()
+
+        from sklearn.model_selection import train_test_split, StratifiedKFold
+        if(self.parent._ajustesEjecucion.value._testOptionsCombo.value=='Cross-validation'):
+            skf=StratifiedKFold(n_splits=int(self.parent._ajustesEjecucion.value._StratifiedKFoldNSplits.value), shuffle=self.parent._ajustesEjecucion.value._StratifiedKFoldShuffle.value, random_state=None)
+            lst_evaluate_stratified = []
+
+
+            for i, (train_index, test_index) in enumerate(skf.split(X, y)): 
+                X_train_fold, X_test_fold = X.iloc[train_index], X.iloc[test_index] 
+                y_train_fold, y_test_fold = y.iloc[train_index], y.iloc[test_index]
+
+
+                try:
+                    self.model.fit(X_train_fold,y_train_fold, epochs=int(self.parent._ajustesEjecucion.value._fit_epochs.value), batch_size=int(self.parent._ajustesEjecucion.value._fit_batch_size.value), verbose=self.parent._ajustesEjecucion.value._fit_verbose.value, 
+                    validation_split=self.parent._ajustesEjecucion.value._fit_validation_split.value)
+
+                except Exception as e:
+                    errorManager.error(self, "Error during model fit", e)
+                    return
+
+                
+            
+                try:
+                    _, accuracy = self.model.evaluate(X_test_fold, y_test_fold)
+                    lst_evaluate_stratified.append(accuracy)
+                    #print('Accuracy: %.2f' % (accuracy*100))
+
+                except Exception as e:
+                    errorManager.error(self, "Error during model evaluation", e) 
+            self.model.summary()
+
+            for x in lst_evaluate_stratified:
+                print('Accuracy: %.2f' % (x*100))
+
+
+        X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=self.parent._ajustesEjecucion.value._sk_train_test_split_test_size.value,
+        random_state=int(self.parent._ajustesEjecucion.value._sk_random_state.value), shuffle=self.parent._ajustesEjecucion.value._sk_shuffle.value)
+
+        
+
         
 
         import errorManager

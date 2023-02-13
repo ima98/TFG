@@ -99,7 +99,7 @@ def fileGeneratorSKlearn(fileName,train_test_splitList, constructor):
 
 
 
-def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
+def fileGeneratorFuncitonalModel(stringList, fileName, compileList, fitList):
     with open('imports.py', 'r') as file:
             imports = file.read()
             fname='generated.py'
@@ -132,12 +132,15 @@ def fileGeneratorSequentialModel(stringList, fileName, compileList, fitList):
             """
             f.write("model = Sequential()")
             f.write('\n')
+            lastLayer=stringList[len(stringList)]
 
             for x in stringList:
                 f.write(x)
                 f.write("\n")
-                f.write("model.add(layerTemp)\n")
+                f.write("x\n")
 
+
+            f.write('model=keras.Model(inputs,'+lastLayer+')\n')
 
             #COMPILER PART
             metrics=""
